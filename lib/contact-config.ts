@@ -54,7 +54,7 @@ export const defaultPhones = [
   {
     value: "+91 93554 74600",
     purpose: "procurement",
-    description: "Neelam (priority)",
+    description: "Neelam",
     isActive: true,
     priority: 100,
   },
