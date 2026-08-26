@@ -88,7 +88,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("h-full antialiased", dmSans.variable, fraunces.variable, geistMono.variable)}
     >
-      <head>
+      <body suppressHydrationWarning className="min-h-full flex flex-col overflow-x-hidden bg-background font-sans text-foreground">
         {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>
@@ -112,8 +112,6 @@ export default function RootLayout({
             />
           </>
         )}
-      </head>
-      <body suppressHydrationWarning className="min-h-full flex flex-col overflow-x-hidden bg-background font-sans text-foreground">
         <SiteJsonLd />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
