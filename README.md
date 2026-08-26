@@ -1,4 +1,4 @@
-# Medipro
+# SSGPharma
 
 ## Local setup
 
