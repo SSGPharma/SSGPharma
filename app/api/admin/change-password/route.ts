@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
     if (!admin) {
       const envPassword = (process.env.ADMIN_PASSWORD ?? "").trim();
-      if (!envPassword || !adminPasswordMatches(currentPassword, envPassword)) {
+      if (!envPassword || !(await adminPasswordMatches(currentPassword, envPassword))) {
         return NextResponse.json({ error: "Current password is incorrect" }, { status: 401 });
       }
 
