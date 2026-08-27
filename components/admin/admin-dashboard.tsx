@@ -768,6 +768,12 @@ export function AdminDashboard() {
       return;
     }
 
+    if (!productForm.categoryId) {
+      setProductBanner({ type: "error", text: "Category is required so the product appears on its category page." });
+      setProductSaving(false);
+      return;
+    }
+
     const payload = {
       name: productForm.name.trim(),
       slug: productForm.slug.trim(),
@@ -1503,10 +1509,11 @@ export function AdminDashboard() {
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="product-category" className="text-sm font-medium text-gray-700">
-                        Category
+                        Category <span className="text-red-600">*</span>
                       </label>
                       <select
                         id="product-category"
+                        required
                         value={productForm.categoryId}
                         onChange={(event) => setProductForm((current) => ({ ...current, categoryId: event.target.value }))}
                         className={`flex h-10 w-full rounded-md border px-3 text-sm outline-none transition focus:border-[#0D7377] focus:ring-4 focus:ring-[#0D7377]/10 ${fieldClassName}`}
@@ -1518,6 +1525,9 @@ export function AdminDashboard() {
                           </option>
                         ))}
                       </select>
+                      <p className="text-xs text-gray-500">
+                        Products without a category only appear on the All Products page, not on their category page.
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="product-manufacturer" className="text-sm font-medium text-gray-700">

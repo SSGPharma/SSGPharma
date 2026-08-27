@@ -49,7 +49,29 @@ function clampPage(page: number | null | undefined) {
   return Math.max(1, Math.floor(page || 1));
 }
 
-export type DivisionMeta = ProductDivision & { isCurated: boolean };
+export type DivisionMeta = ProductDivision & { isCurated: boolean; categoryIds: string[] };
+
+/**
+ * Loosely compares a category's name/slug against a curated division's
+ * identifiers: case, whitespace, punctuation, and a trailing "division"
+ * word are all ignored. This exists because admins have created categories
+ * like "Oncology Division" / "oncology-division" that were meant to power
+ * the Oncology division page but didn't exactly match "Oncology" / "oncology"
+ * — an exact-string match silently showed those products on /products but
+ * never on /divisions/oncology. See docs/category-divisions.md.
+ */
+function normalizeDivisionKey(value: string) {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function matchesCuratedDivision(division: ProductDivision, candidate: { name: string; slug: string }) {
+  const targets = [division.slug, division.catalogCategory, division.title].map(normalizeDivisionKey);
+  const candidates = [candidate.slug, candidate.name].map(normalizeDivisionKey);
+
+  return candidates.some(
+    (value) => targets.includes(value) || targets.some((target) => value === `${target}division`),
+  );
+}
 
 /**
  * Resolves a division/category page identifier against the curated marketing
@@ -61,7 +83,15 @@ export async function resolveDivisionMeta(identifier: string | null | undefined)
   if (!identifier) return null;
 
   const curated = getProductDivision(identifier);
-  if (curated) return { ...curated, isCurated: true };
+  if (curated) {
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, slug: true },
+    });
+    const categoryIds = categories.filter((category) => matchesCuratedDivision(curated, category)).map((category) => category.id);
+
+    return { ...curated, isCurated: true, categoryIds };
+  }
 
   const normalized = identifier.trim().toLowerCase();
   if (!normalized) return null;
@@ -77,6 +107,7 @@ export async function resolveDivisionMeta(identifier: string | null | undefined)
     imageSrc: marketingImages.warehouse,
     imageAlt: `${category.name} medicines from SSG Pharma`,
     isCurated: false,
+    categoryIds: [category.id],
   };
 }
 
@@ -84,15 +115,7 @@ function buildProductWhere(division: DivisionMeta | null, query?: string): Prism
   const normalizedQuery = query?.trim() ?? "";
 
   return {
-    ...(division
-      ? {
-          category: {
-            is: {
-              OR: [{ slug: division.slug }, { name: division.catalogCategory }],
-            },
-          },
-        }
-      : {}),
+    ...(division ? { categoryId: { in: division.categoryIds } } : {}),
     ...(normalizedQuery
       ? {
           OR: [
