@@ -8,7 +8,6 @@ import { FadeIn } from "@/components/motion/fade-in";
 import { StaggerItem, StaggerList } from "@/components/motion/stagger-list";
 import { buttonVariants } from "@/components/ui/button";
 import { productDivisions } from "@/lib/divisions";
-import { marketingImages } from "@/lib/marketing-images";
 import { getCachedHomepageProducts } from "@/lib/catalog-data";
 import { cn } from "@/lib/utils";
 
@@ -58,12 +57,12 @@ export default async function HomePage() {
               is already on the bed and the clock is ticking.
             </p>
           </FadeIn>
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border shadow-lg">
+          <div className="relative aspect-[1691/930] w-full overflow-hidden rounded-2xl border border-border shadow-lg">
             <Image
-              src={marketingImages.consultation}
+              src="/homepage-mid.png"
               alt="Healthcare procurement and pharmacy coordination"
               fill
-              className="object-cover"
+              className="object-contain"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
@@ -126,12 +125,12 @@ export default async function HomePage() {
 
       <section className="w-full border-t border-border/60 bg-primary/5 py-16 md:py-24">
         <div className="mx-auto grid max-w-[1400px] gap-10 px-4 md:grid-cols-2 md:items-center md:gap-16 md:px-8">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-primary/20 shadow-md">
+          <div className="relative aspect-[1565/1005] overflow-hidden rounded-2xl border border-primary/20 shadow-md">
             <Image
-              src={marketingImages.warehouse}
+              src="/homepage-bottom.png"
               alt="Medicine warehousing and nationwide distribution"
               fill
-              className="object-cover"
+              className="object-contain"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>

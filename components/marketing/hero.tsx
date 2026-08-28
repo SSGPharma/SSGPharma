@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { marketingImages } from "@/lib/marketing-images";
 import { cn } from "@/lib/utils";
 
 export function Hero() {
@@ -61,12 +60,12 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative min-h-[300px] w-full lg:min-h-[560px]">
+        <div className="relative aspect-[3/2] w-full">
           <Image
-            src={marketingImages.heroLab}
+            src="/homepage-top.png"
             alt="Licensed pharmaceutical wholesale — quality medicines and supply chain"
             fill
-            className="object-cover"
+            className="object-contain"
             sizes="(max-width: 1024px) 100vw, 48vw"
             priority
             loading="eager"

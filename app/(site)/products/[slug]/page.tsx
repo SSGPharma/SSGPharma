@@ -197,7 +197,7 @@ function ProductShelfCard({
           alt={`${product.name} product image`}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
-          className="object-cover"
+          className="object-contain p-3"
         />
       </div>
       <div className="space-y-3 p-5">
