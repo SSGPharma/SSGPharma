@@ -105,7 +105,7 @@ export function DivisionProductsList({ items, division, page, totalCount, totalP
                       fallbackSrc={fallbackSrc}
                       fill
                       sizes="(max-width: 768px) 100vw, 33vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="object-contain p-3 transition-transform duration-300 group-hover:scale-[1.02]"
                     />
                   </div>
 
