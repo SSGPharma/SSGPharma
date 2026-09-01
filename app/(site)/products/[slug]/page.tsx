@@ -32,9 +32,11 @@ const productShelfSelect = {
   description: true,
   pricePaise: true,
   priceSuffix: true,
+  // Shelf cards only ever render the first available image (getProductImageUrls()[0]),
+  // so imageUrl2/imageUrl3 aren't fetched here — pulling all three for up to 9 related
+  // products was what pushed this page's cached payload past Next's 2MB cache-entry
+  // limit, silently disabling caching and forcing a full re-fetch on every request.
   imageUrl1: true,
-  imageUrl2: true,
-  imageUrl3: true,
   category: {
     select: {
       name: true,
@@ -187,7 +189,7 @@ function ProductShelfCard({
   product: ProductPageData["alternatives"][number];
   eyebrow?: string;
 }) {
-  const imageSrc = getProductImageUrls(product)[0] ?? marketingImages.catalog;
+  const imageSrc = product.imageUrl1 ?? marketingImages.catalog;
 
   return (
     <article className="overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm">
