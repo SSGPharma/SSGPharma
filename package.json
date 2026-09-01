@@ -11,6 +11,7 @@
     "start:standalone": "node .next/standalone/server.js",
     "lint": "eslint",
     "db:reset:render": "bash scripts/render-reset-db.sh",
+    "images:compress": "node scripts/compress-existing-images.mjs",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -41,6 +42,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"
