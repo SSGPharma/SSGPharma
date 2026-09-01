@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Phone, Mail } from "lucide-react";
-import { formatMailtoHref, formatPhoneHref, formatWhatsAppHref } from "@/lib/contact-config";
+import { formatMailtoHref, formatPhoneHref, formatWhatsAppHref } from "@/lib/contact-info";
 
 type FloatingInquiryProps = {
   primaryPhone: string;
