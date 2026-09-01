@@ -109,7 +109,8 @@ async function loadMoleculePageData(paramsPromise: Props["params"]) {
       return null;
     }
     return { slug, ...data };
-  } catch {
+  } catch (error) {
+    console.error("Failed to load molecule page data", error);
     return null;
   }
 }

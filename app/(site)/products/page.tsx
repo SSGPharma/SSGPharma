@@ -118,7 +118,10 @@ export default async function ProductsPage({ searchParams }: Props) {
 }
 
 async function ProductsResults({ divisionSlug, query, page }: { divisionSlug?: string; query: string; page: number }) {
-  const data = await getCachedProductsPageData({ divisionSlug, query, page }).catch(() => null);
+  const data = await getCachedProductsPageData({ divisionSlug, query, page }).catch((error) => {
+    console.error("Failed to load products page data", error);
+    return null;
+  });
   if (!data) {
     return (
       <section className="mx-auto max-w-[1400px] px-4 py-16 md:px-6">

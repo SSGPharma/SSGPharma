@@ -82,7 +82,10 @@ const getMoleculesPageData = unstable_cache(
 );
 
 export default async function MoleculesPage() {
-  const molecules = await getMoleculesPageData().catch(() => null);
+  const molecules = await getMoleculesPageData().catch((error) => {
+    console.error("Failed to load molecules page data", error);
+    return null;
+  });
   if (!molecules) {
     return (
       <ContentPage width="full" variant="frame">
