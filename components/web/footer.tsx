@@ -2,6 +2,14 @@ import Link from "next/link";
 import { defaultPublicContactConfig, formatBusinessDays, formatBusinessHours, formatMailtoHref, formatPhoneHref } from "@/lib/contact-config";
 import { productDivisions, serviceLines } from "@/lib/divisions";
 
+const policyLinks = [
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms & Conditions", href: "/terms-and-conditions" },
+  { label: "Disclaimer", href: "/disclaimer" },
+  { label: "Return Policy", href: "/return-policy" },
+  { label: "Shipping Policy", href: "/shipping-policy" },
+];
+
 export function SiteFooter() {
   const contactConfig = defaultPublicContactConfig;
   const uniqueEmails = contactConfig.emails.filter(
@@ -80,6 +88,16 @@ export function SiteFooter() {
               </li>
             ))}
           </ul>
+        </div>
+      </div>
+
+      <div className="border-t border-border/60 py-6">
+        <div className="mx-auto flex max-w-350 flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 text-xs text-foreground/72 md:px-8">
+          {policyLinks.map((link) => (
+            <Link key={link.href} className="transition-colors duration-200 hover:text-foreground" href={link.href}>
+              {link.label}
+            </Link>
+          ))}
         </div>
       </div>
 
