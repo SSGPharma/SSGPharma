@@ -92,24 +92,25 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-border/60 py-6">
-        <div className="mx-auto flex max-w-350 flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 text-xs text-foreground/72 md:px-8">
-          {policyLinks.map((link) => (
-            <Link key={link.href} className="transition-colors duration-200 hover:text-foreground" href={link.href}>
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      <div className="border-t border-border/60 py-6">
-        <div className="mx-auto flex max-w-350 flex-col items-center justify-between gap-3 px-4 text-center text-xs text-foreground/72 md:flex-row md:px-8 md:text-left">
-          <p>© 2026 {contactConfig.companyName}. All rights reserved.</p>
-          <p className="inline-flex items-center gap-2.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-[11px] tracking-[0.18em] text-foreground/88 shadow-sm ring-1 ring-primary/10 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-px hover:border-primary/40 hover:shadow-md">
-            <span className="inline-flex size-2 rounded-full bg-primary shadow-[0_0_0_4px_rgba(13,115,119,0.08)]" aria-hidden />
-            <span className="font-medium text-primary">Made with love</span>
-            <span className="text-foreground/50">by</span>
-            <span className="rounded-full bg-foreground/8 px-2 py-0.5 font-semibold text-foreground">ByteTwo Studios</span>
-          </p>
+        <div className="mx-auto flex max-w-350 flex-col items-center gap-4 px-4 text-center text-xs text-foreground/72 md:flex-row md:justify-between md:px-8 md:text-left">
+          <div className="flex flex-col items-center gap-2 md:items-start">
+            <p>© 2026 {contactConfig.companyName}. All rights reserved.</p>
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 md:justify-start">
+              {policyLinks.map((link) => (
+                <Link key={link.href} className="transition-colors duration-200 hover:text-foreground" href={link.href}>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <a
+            href="https://bhajamaach.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-foreground/60 transition-colors duration-200 hover:text-foreground"
+          >
+            Made with care by <span className="text-foreground/80">ByteTwo Studios</span>
+          </a>
         </div>
       </div>
     </footer>
