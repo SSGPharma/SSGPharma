@@ -82,6 +82,7 @@ type ProductRecord = {
   imageUrl3: string | null;
   createdAt: string;
   updatedAt: string;
+  molecules?: Array<{ moleculeId: string }>;
 };
 
 type MoleculeRecord = {
@@ -126,6 +127,7 @@ type ProductFormState = {
   dosage: string;
   packSize: string;
   salts: string;
+  moleculeIds: string[];
   description: string;
   keyBenefits: string;
   goodToKnow: string;
@@ -229,6 +231,7 @@ function emptyProductForm(): ProductFormState {
     dosage: "",
     packSize: "",
     salts: "",
+    moleculeIds: [],
     description: "",
     keyBenefits: "",
     goodToKnow: "",
@@ -641,6 +644,7 @@ export function AdminDashboard() {
       dosage: product.dosage ?? "",
       packSize: product.packSize ?? "",
       salts: product.salts ?? "",
+      moleculeIds: product.molecules?.map((entry) => entry.moleculeId) ?? [],
       description: product.description ?? "",
       keyBenefits: product.keyBenefits ?? "",
       goodToKnow: product.goodToKnow ?? "",
@@ -787,6 +791,7 @@ export function AdminDashboard() {
       dosage: productForm.dosage.trim() || undefined,
       packSize: productForm.packSize.trim() || undefined,
       salts: productForm.salts.trim() || undefined,
+      moleculeIds: productForm.moleculeIds,
       description: productForm.description.trim() || undefined,
       keyBenefits: productForm.keyBenefits.trim() || undefined,
       goodToKnow: productForm.goodToKnow.trim() || undefined,
@@ -1634,6 +1639,39 @@ export function AdminDashboard() {
                         onChange={(event) => setProductForm((current) => ({ ...current, salts: event.target.value }))}
                         className={fieldClassName}
                       />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700">Linked Molecules</label>
+                      <p className="text-xs text-gray-500">
+                        Select the molecule(s) this product contains so it appears on their molecule pages.
+                      </p>
+                      <div className="grid gap-2 rounded-md border border-input p-3 sm:grid-cols-2 md:grid-cols-3">
+                        {molecules.length === 0 ? (
+                          <span className="text-sm text-gray-500">No molecules available yet.</span>
+                        ) : (
+                          molecules.map((molecule) => {
+                            const checked = productForm.moleculeIds.includes(molecule.id);
+                            return (
+                              <label key={molecule.id} className="flex items-center gap-2 text-sm text-gray-700">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(event) =>
+                                    setProductForm((current) => ({
+                                      ...current,
+                                      moleculeIds: event.target.checked
+                                        ? [...current.moleculeIds, molecule.id]
+                                        : current.moleculeIds.filter((id) => id !== molecule.id),
+                                    }))
+                                  }
+                                  className="h-4 w-4"
+                                />
+                                {molecule.name}
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
                     </div>
                   </div>
                 </SectionCard>
