@@ -54,53 +54,116 @@ const productShelfSelect = {
   },
 } as const;
 
-const getProductPageData = unstable_cache(async (slug: string) => {
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      categoryId: true,
-      manufacturer: true,
-      isActive: true,
-      pricePaise: true,
-      mrpPaise: true,
-      priceSuffix: true,
-      mrpSuffix: true,
-      dosage: true,
-      packSize: true,
-      salts: true,
-      description: true,
-      keyBenefits: true,
-      goodToKnow: true,
-      allergiesInformation: true,
-      directionForUse: true,
-      safetyInformation: true,
-      specialBenefitSchemes: true,
-      faqs: true,
-      imageUrl1: true,
-      imageUrl2: true,
-      imageUrl3: true,
-      category: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
+// Each related-product list is cached separately (rather than one call caching
+// the whole page) so a product with several image-heavy related items doesn't
+// push a single cache entry past Next's 2MB unstable_cache limit.
+const getCachedProduct = unstable_cache(
+  async (slug: string) =>
+    prisma.product.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        categoryId: true,
+        manufacturer: true,
+        isActive: true,
+        pricePaise: true,
+        mrpPaise: true,
+        priceSuffix: true,
+        mrpSuffix: true,
+        dosage: true,
+        packSize: true,
+        salts: true,
+        description: true,
+        keyBenefits: true,
+        goodToKnow: true,
+        allergiesInformation: true,
+        directionForUse: true,
+        safetyInformation: true,
+        specialBenefitSchemes: true,
+        faqs: true,
+        imageUrl1: true,
+        imageUrl2: true,
+        imageUrl3: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
         },
-      },
-      molecules: {
-        select: {
-          molecule: {
-            select: {
-              name: true,
+        molecules: {
+          select: {
+            molecule: {
+              select: {
+                name: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    }),
+  ["product-by-slug"],
+  { revalidate: 3600, tags: ["products"] },
+);
 
+const getAlternativeProducts = unstable_cache(
+  async (productId: string, tokenFilters: Array<Record<string, unknown>>) => {
+    if (tokenFilters.length === 0) return [];
+    return prisma.product.findMany({
+      where: {
+        id: { not: productId },
+        isActive: true,
+        OR: tokenFilters,
+      },
+      orderBy: [{ name: "asc" }],
+      take: 3,
+      select: productShelfSelect,
+    });
+  },
+  ["product-alternatives"],
+  { revalidate: 3600, tags: ["products"] },
+);
+
+const getRelatedCategoryProducts = unstable_cache(
+  async (productId: string, categoryId: string | null) => {
+    if (!categoryId) return [];
+    return prisma.product.findMany({
+      where: {
+        id: { not: productId },
+        isActive: true,
+        categoryId,
+      },
+      orderBy: [{ name: "asc" }],
+      take: 3,
+      select: productShelfSelect,
+    });
+  },
+  ["product-related-category"],
+  { revalidate: 3600, tags: ["products"] },
+);
+
+const getMoreFromManufacturer = unstable_cache(
+  async (productId: string, manufacturer: string | null) => {
+    if (!manufacturer) return [];
+    return prisma.product.findMany({
+      where: {
+        id: { not: productId },
+        isActive: true,
+        manufacturer,
+      },
+      orderBy: [{ name: "asc" }],
+      take: 3,
+      select: productShelfSelect,
+    });
+  },
+  ["product-more-from-manufacturer"],
+  { revalidate: 3600, tags: ["products"] },
+);
+
+async function getProductPageData(slug: string) {
+  const product = await getCachedProduct(slug);
   if (!product) return null;
 
   const productTokens = getProductMatchTokens(product);
@@ -118,46 +181,13 @@ const getProductPageData = unstable_cache(async (slug: string) => {
   ]);
 
   const [alternatives, relatedCategoryProducts, moreFromManufacturer] = await Promise.all([
-    tokenFilters.length > 0
-      ? prisma.product.findMany({
-          where: {
-            id: { not: product.id },
-            isActive: true,
-            OR: tokenFilters,
-          },
-          orderBy: [{ name: "asc" }],
-          take: 3,
-          select: productShelfSelect,
-        })
-      : Promise.resolve([]),
-    product.categoryId
-      ? prisma.product.findMany({
-          where: {
-            id: { not: product.id },
-            isActive: true,
-            categoryId: product.categoryId,
-          },
-          orderBy: [{ name: "asc" }],
-          take: 3,
-          select: productShelfSelect,
-        })
-      : Promise.resolve([]),
-    product.manufacturer
-      ? prisma.product.findMany({
-          where: {
-            id: { not: product.id },
-            isActive: true,
-            manufacturer: product.manufacturer,
-          },
-          orderBy: [{ name: "asc" }],
-          take: 3,
-          select: productShelfSelect,
-        })
-      : Promise.resolve([]),
+    getAlternativeProducts(product.id, tokenFilters),
+    getRelatedCategoryProducts(product.id, product.categoryId),
+    getMoreFromManufacturer(product.id, product.manufacturer),
   ]);
 
   return { product, alternatives, relatedCategoryProducts, moreFromManufacturer };
-}, ["product-page-data"], { revalidate: 3600, tags: ["products"] });
+}
 
 type ProductPageData = NonNullable<Awaited<ReturnType<typeof getProductPageData>>>;
 type ProductWithImages = Pick<ProductPageData["product"], "imageUrl1" | "imageUrl2" | "imageUrl3">;
