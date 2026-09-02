@@ -147,67 +147,68 @@ export const getCachedHomepageProducts = unstable_cache(
   { revalidate: 3600, tags: ["products"] },
 );
 
-// Not wrapped in unstable_cache: with up to PRODUCT_PAGE_SIZE embedded base64
-// images per page, this payload routinely exceeds Next's 2MB fetch-cache-entry
-// limit, which silently disables caching anyway. The route segment's own
-// `revalidate = 3600` (page.tsx) plus revalidatePath()/revalidateTag() calls
-// from the admin mutation routes already provide equivalent caching and
-// on-demand invalidation at the page level, so nothing is lost by removing
-// this redundant, size-limited caching layer.
-export async function getCachedProductsPageData({ divisionSlug, query, page }: { divisionSlug?: string; query?: string; page?: number }) {
-  const normalizedQuery = query?.trim() ?? "";
-  const currentPage = clampPage(page);
-  const division = await resolveDivisionMeta(divisionSlug);
-  const where = buildProductWhere(division, normalizedQuery);
+export const getCachedProductsPageData = unstable_cache(
+  async ({ divisionSlug, query, page }: { divisionSlug?: string; query?: string; page?: number }) => {
+    const normalizedQuery = query?.trim() ?? "";
+    const currentPage = clampPage(page);
+    const division = await resolveDivisionMeta(divisionSlug);
+    const where = buildProductWhere(division, normalizedQuery);
 
-  const [items, totalCount] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy: [{ isActive: "desc" }, { name: "asc" }],
-      skip: (currentPage - 1) * PRODUCT_PAGE_SIZE,
-      take: PRODUCT_PAGE_SIZE,
-      select: productListSelect,
-    }),
-    prisma.product.count({ where }),
-  ]);
+    const [items, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy: [{ isActive: "desc" }, { name: "asc" }],
+        skip: (currentPage - 1) * PRODUCT_PAGE_SIZE,
+        take: PRODUCT_PAGE_SIZE,
+        select: productListSelect,
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / PRODUCT_PAGE_SIZE));
+    const totalPages = Math.max(1, Math.ceil(totalCount / PRODUCT_PAGE_SIZE));
 
-  return {
-    division,
-    items,
-    query: normalizedQuery,
-    page: Math.min(currentPage, totalPages),
-    totalCount,
-    totalPages,
-  };
-}
+    return {
+      division,
+      items,
+      query: normalizedQuery,
+      page: Math.min(currentPage, totalPages),
+      totalCount,
+      totalPages,
+    };
+  },
+  ["products-page-data"],
+  { revalidate: 3600, tags: ["products"] },
+);
 
-export async function getCachedDivisionProducts({ slug, page }: { slug: string; page?: number }) {
-  const division = await resolveDivisionMeta(slug);
-  if (!division) return null;
+export const getCachedDivisionProducts = unstable_cache(
+  async ({ slug, page }: { slug: string; page?: number }) => {
+    const division = await resolveDivisionMeta(slug);
+    if (!division) return null;
 
-  const currentPage = clampPage(page);
-  const where = buildProductWhere(division);
+    const currentPage = clampPage(page);
+    const where = buildProductWhere(division);
 
-  const [items, totalCount] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy: [{ isActive: "desc" }, { name: "asc" }],
-      skip: (currentPage - 1) * PRODUCT_PAGE_SIZE,
-      take: PRODUCT_PAGE_SIZE,
-      select: productListSelect,
-    }),
-    prisma.product.count({ where }),
-  ]);
+    const [items, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy: [{ isActive: "desc" }, { name: "asc" }],
+        skip: (currentPage - 1) * PRODUCT_PAGE_SIZE,
+        take: PRODUCT_PAGE_SIZE,
+        select: productListSelect,
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / PRODUCT_PAGE_SIZE));
+    const totalPages = Math.max(1, Math.ceil(totalCount / PRODUCT_PAGE_SIZE));
 
-  return {
-    division,
-    items,
-    page: Math.min(currentPage, totalPages),
-    totalCount,
-    totalPages,
-  };
-}
+    return {
+      division,
+      items,
+      page: Math.min(currentPage, totalPages),
+      totalCount,
+      totalPages,
+    };
+  },
+  ["division-products"],
+  { revalidate: 3600, tags: ["products"] },
+);
