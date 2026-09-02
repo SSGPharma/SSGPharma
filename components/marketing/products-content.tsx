@@ -17,6 +17,8 @@ type ProductListItem = {
   manufacturer: string | null;
   description: string | null;
   imageUrl1: string | null;
+  imageUrl2: string | null;
+  imageUrl3: string | null;
   pricePaise: number;
   priceSuffix: string | null;
   isActive: boolean;
@@ -126,10 +128,10 @@ export function ProductsContent({ items, division, initialQuery = "", page, tota
                 className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/70 transition-all hover:border-primary/40 hover:bg-card hover:shadow-lg"
               >
                 {/* Image Section */}
-                {m.imageUrl1 ? (
+                {m.imageUrl1 || m.imageUrl2 || m.imageUrl3 ? (
                   <div className="relative h-44 w-full overflow-hidden bg-accent/10">
                     <ManagedImage
-                      src={m.imageUrl1}
+                      src={m.imageUrl1 || m.imageUrl2 || m.imageUrl3 || ""}
                       alt={m.name}
                       fill
                       sizes="(max-width: 768px) 100vw, 33vw"

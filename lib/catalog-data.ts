@@ -13,10 +13,9 @@ export const productListSelect = {
   salts: true,
   manufacturer: true,
   description: true,
-  // Cards only ever render one image per product; fetching all three slots for
-  // every item on a 20-item page pushed the cached payload past Next's 2MB
-  // unstable_cache limit, silently disabling caching on every list/search view.
   imageUrl1: true,
+  imageUrl2: true,
+  imageUrl3: true,
   isActive: true,
   pricePaise: true,
   priceSuffix: true,

@@ -16,6 +16,8 @@ type DivisionProductItem = {
   salts: string | null;
   description: string | null;
   imageUrl1: string | null;
+  imageUrl2: string | null;
+  imageUrl3: string | null;
   pricePaise: number;
   priceSuffix: string | null;
   isActive: boolean;
@@ -87,7 +89,7 @@ export function DivisionProductsList({ items, division, page, totalCount, totalP
           </div>
         ) : (
           filteredItems.map((item, index) => {
-            const imageSrc = item.imageUrl1;
+            const imageSrc = item.imageUrl1 || item.imageUrl2 || item.imageUrl3;
             const fallbackSrc = getStableMarketingFallback(`${item.id}:${item.name}`);
 
             return (
