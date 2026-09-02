@@ -230,8 +230,7 @@ async function loadProductPageData(paramsPromise: Props["params"]) {
       return null;
     }
     return { slug, ...data };
-  } catch (error) {
-    console.error("Failed to load product page data", error);
+  } catch {
     return null;
   }
 }

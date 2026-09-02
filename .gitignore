@@ -36,8 +36,6 @@ yarn-error.log*
 # local sqlite
 *.db
 *.db-journal
-*.db-wal
-*.db-shm
 data/
 !data/
 !data/.gitkeep
