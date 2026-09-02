@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Hero } from "@/components/marketing/hero";
 import { HomepageSearchSection } from "@/components/marketing/homepage-search";
 import { StatsSection } from "@/components/marketing/stats-section";
@@ -33,10 +34,16 @@ const pillars = [
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const { products, productCount } = await getCachedHomepageProducts().catch(() => ({
-    products: [],
-    productCount: 0,
-  }));
+  // Forces dynamic (per-request) rendering instead of build-time static
+  // prerendering — see the identical fix/comment on the molecules list page
+  // for why: Render's persistent disk (the SQLite file) isn't mounted during
+  // `next build`, so a build-time query here would silently bake in an empty
+  // product showcase until a real runtime request triggers revalidation.
+  await connection();
+  const { products, productCount } = await getCachedHomepageProducts().catch((error) => {
+    console.error("Failed to load homepage products", error);
+    return { products: [], productCount: 0 };
+  });
 
   return (
     <>

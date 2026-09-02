@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
+import { connection } from "next/server";
 import { FadeIn } from "@/components/motion/fade-in";
 import { ManagedImage } from "@/components/web/managed-image";
 import { ContentPage } from "@/components/web/content-page";
@@ -82,7 +83,18 @@ const getMoleculesPageData = unstable_cache(
 );
 
 export default async function MoleculesPage() {
-  const molecules = await getMoleculesPageData().catch(() => null);
+  // Forces dynamic (per-request) rendering instead of build-time static
+  // prerendering. Without this, `next build` tries to query the database
+  // while generating this page — but on Render the persistent disk (where
+  // the SQLite file lives) isn't mounted during the build step, so that
+  // build-time query fails and the "temporarily unavailable" fallback gets
+  // baked permanently into the static HTML, served until a real runtime
+  // request happens to trigger a background revalidation.
+  await connection();
+  const molecules = await getMoleculesPageData().catch((error) => {
+    console.error("Failed to load molecules page data", error);
+    return null;
+  });
   if (!molecules) {
     return (
       <ContentPage width="full" variant="frame">
