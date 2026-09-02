@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { unstable_cache } from "next/cache";
 import { FadeIn } from "@/components/motion/fade-in";
 import { ManagedImage } from "@/components/web/managed-image";
 import { ContentPage } from "@/components/web/content-page";
@@ -62,24 +61,26 @@ const faqs = [
 
 export const revalidate = 3600;
 
-const getMoleculesPageData = unstable_cache(
-  async () =>
-    prisma.molecule.findMany({
-      where: { isPublished: true },
-      orderBy: [{ updatedAt: "desc" }],
-      take: 24,
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        synonyms: true,
-        imageUrl: true,
-        overview: true,
-      },
-    }),
-  ["molecules-page-data"],
-  { revalidate: 3600, tags: ["molecules"] },
-);
+// Not wrapped in unstable_cache: with up to 24 embedded base64 images per page,
+// this payload can exceed Next's 2MB fetch-cache-entry limit as more molecules
+// get real photos. The route's own `revalidate = 3600` plus revalidatePath()/
+// revalidateTag() from the admin molecule routes already provide equivalent
+// caching and on-demand invalidation at the page level.
+async function getMoleculesPageData() {
+  return prisma.molecule.findMany({
+    where: { isPublished: true },
+    orderBy: [{ updatedAt: "desc" }],
+    take: 24,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      synonyms: true,
+      imageUrl: true,
+      overview: true,
+    },
+  });
+}
 
 export default async function MoleculesPage() {
   const molecules = await getMoleculesPageData().catch((error) => {
