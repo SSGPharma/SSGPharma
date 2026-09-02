@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const imageReferenceSchema = z.string().trim().min(1, "Image reference cannot be empty").max(4000000, "Image reference is too long");
+const imageReferenceSchema = z.string().trim().min(1, "Image reference cannot be empty").max(10000000, "Image reference is too long");
 const nullableImageReferenceSchema = z.preprocess((value) => {
   if (typeof value === "string" && value.trim() === "") {
     return null;

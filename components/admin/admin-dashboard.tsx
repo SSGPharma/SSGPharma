@@ -325,53 +325,13 @@ function withinCurrentYear(value: string) {
   return current.getFullYear() === date.getFullYear();
 }
 
-function readFileRaw(file: File) {
+function readFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
     reader.onerror = () => reject(new Error("Could not read file"));
     reader.readAsDataURL(file);
   });
-}
-
-const MAX_IMAGE_DIMENSION = 1600;
-const IMAGE_QUALITY = 0.82;
-
-/**
- * Downscales and re-encodes uploaded images before they are stored as data URLs,
- * since product/molecule images are currently persisted inline in the database.
- * SVGs and GIFs are passed through untouched — canvas re-encoding would strip
- * vector fidelity and animation.
- */
-async function readFileAsDataUrl(file: File) {
-  if (file.type === "image/svg+xml" || file.type === "image/gif") {
-    return readFileRaw(file);
-  }
-
-  const bitmap = await createImageBitmap(file).catch(() => null);
-  if (!bitmap) {
-    return readFileRaw(file);
-  }
-
-  try {
-    const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(bitmap.width, bitmap.height));
-    const width = Math.max(1, Math.round(bitmap.width * scale));
-    const height = Math.max(1, Math.round(bitmap.height * scale));
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return readFileRaw(file);
-
-    ctx.drawImage(bitmap, 0, 0, width, height);
-
-    // Keep PNGs as PNG to preserve transparency; re-encode everything else as JPEG for compression.
-    const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
-    return canvas.toDataURL(outputType, IMAGE_QUALITY);
-  } finally {
-    bitmap.close();
-  }
 }
 
 function isInlineImageValue(value: string) {
