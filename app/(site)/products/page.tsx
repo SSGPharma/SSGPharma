@@ -110,8 +110,8 @@ export default async function ProductsPage({ searchParams }: Props) {
         </div>
       </section>
 
-      <Suspense key={`${division?.slug ?? "all"}-${query}-${page}`} fallback={<PageLoading title="Loading products" />}>
-        <ProductsResults divisionSlug={division?.slug} query={query} page={page} />
+      <Suspense key={`${divisionSlug ?? "all"}-${query}-${page}`} fallback={<PageLoading title="Loading products" />}>
+        <ProductsResults divisionSlug={divisionSlug} query={query} page={page} />
       </Suspense>
     </>
   );
@@ -131,7 +131,7 @@ async function ProductsResults({ divisionSlug, query, page }: { divisionSlug?: s
   return (
     <ProductsContent
       items={data.items}
-      division={data.division}
+      division={data.division ?? undefined}
       initialQuery={data.query}
       page={data.page}
       totalCount={data.totalCount}

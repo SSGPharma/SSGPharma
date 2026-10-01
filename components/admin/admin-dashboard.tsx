@@ -82,6 +82,7 @@ type ProductRecord = {
   imageUrl3: string | null;
   createdAt: string;
   updatedAt: string;
+  molecules?: Array<{ moleculeId: string }>;
 };
 
 type MoleculeRecord = {
@@ -126,6 +127,7 @@ type ProductFormState = {
   dosage: string;
   packSize: string;
   salts: string;
+  moleculeIds: string[];
   description: string;
   keyBenefits: string;
   goodToKnow: string;
@@ -229,6 +231,7 @@ function emptyProductForm(): ProductFormState {
     dosage: "",
     packSize: "",
     salts: "",
+    moleculeIds: [],
     description: "",
     keyBenefits: "",
     goodToKnow: "",
@@ -641,6 +644,7 @@ export function AdminDashboard() {
       dosage: product.dosage ?? "",
       packSize: product.packSize ?? "",
       salts: product.salts ?? "",
+      moleculeIds: product.molecules?.map((entry) => entry.moleculeId) ?? [],
       description: product.description ?? "",
       keyBenefits: product.keyBenefits ?? "",
       goodToKnow: product.goodToKnow ?? "",
@@ -768,6 +772,12 @@ export function AdminDashboard() {
       return;
     }
 
+    if (!productForm.categoryId) {
+      setProductBanner({ type: "error", text: "Category is required so the product appears on its category page." });
+      setProductSaving(false);
+      return;
+    }
+
     const payload = {
       name: productForm.name.trim(),
       slug: productForm.slug.trim(),
@@ -781,6 +791,7 @@ export function AdminDashboard() {
       dosage: productForm.dosage.trim() || undefined,
       packSize: productForm.packSize.trim() || undefined,
       salts: productForm.salts.trim() || undefined,
+      moleculeIds: productForm.moleculeIds,
       description: productForm.description.trim() || undefined,
       keyBenefits: productForm.keyBenefits.trim() || undefined,
       goodToKnow: productForm.goodToKnow.trim() || undefined,
@@ -1503,10 +1514,11 @@ export function AdminDashboard() {
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="product-category" className="text-sm font-medium text-gray-700">
-                        Category
+                        Category <span className="text-red-600">*</span>
                       </label>
                       <select
                         id="product-category"
+                        required
                         value={productForm.categoryId}
                         onChange={(event) => setProductForm((current) => ({ ...current, categoryId: event.target.value }))}
                         className={`flex h-10 w-full rounded-md border px-3 text-sm outline-none transition focus:border-[#0D7377] focus:ring-4 focus:ring-[#0D7377]/10 ${fieldClassName}`}
@@ -1518,6 +1530,9 @@ export function AdminDashboard() {
                           </option>
                         ))}
                       </select>
+                      <p className="text-xs text-gray-500">
+                        Products without a category only appear on the All Products page, not on their category page.
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="product-manufacturer" className="text-sm font-medium text-gray-700">
@@ -1624,6 +1639,39 @@ export function AdminDashboard() {
                         onChange={(event) => setProductForm((current) => ({ ...current, salts: event.target.value }))}
                         className={fieldClassName}
                       />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700">Linked Molecules</label>
+                      <p className="text-xs text-gray-500">
+                        Select the molecule(s) this product contains so it appears on their molecule pages.
+                      </p>
+                      <div className="grid gap-2 rounded-md border border-input p-3 sm:grid-cols-2 md:grid-cols-3">
+                        {molecules.length === 0 ? (
+                          <span className="text-sm text-gray-500">No molecules available yet.</span>
+                        ) : (
+                          molecules.map((molecule) => {
+                            const checked = productForm.moleculeIds.includes(molecule.id);
+                            return (
+                              <label key={molecule.id} className="flex items-center gap-2 text-sm text-gray-700">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(event) =>
+                                    setProductForm((current) => ({
+                                      ...current,
+                                      moleculeIds: event.target.checked
+                                        ? [...current.moleculeIds, molecule.id]
+                                        : current.moleculeIds.filter((id) => id !== molecule.id),
+                                    }))
+                                  }
+                                  className="h-4 w-4"
+                                />
+                                {molecule.name}
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
                     </div>
                   </div>
                 </SectionCard>

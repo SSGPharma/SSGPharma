@@ -5,9 +5,8 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { DivisionProductsList } from "@/components/marketing/division-products-list";
 import { FadeIn } from "@/components/motion/fade-in";
-import { getProductDivision } from "@/lib/divisions";
 import { PageLoading } from "@/components/web/page-loading";
-import { getCachedDivisionProducts } from "@/lib/catalog-data";
+import { getCachedDivisionProducts, resolveDivisionMeta } from "@/lib/catalog-data";
 import { getSiteUrl } from "@/lib/site-url";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> };
@@ -21,7 +20,7 @@ function parsePage(value: string | undefined) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const d = getProductDivision(slug);
+  const d = await resolveDivisionMeta(slug);
   if (!d) return {};
   const base = getSiteUrl();
   const url = `${base}/divisions/${slug}`;
@@ -41,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DivisionPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const { page: pageParam } = await searchParams;
-  const division = getProductDivision(slug);
+  const division = await resolveDivisionMeta(slug);
   if (!division) notFound();
   const page = parsePage(pageParam);
 

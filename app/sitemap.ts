@@ -16,6 +16,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/get-a-quote",
     "/molecules",
     "/patient-assistance-programs",
+    "/privacy-policy",
+    "/terms-and-conditions",
+    "/disclaimer",
+    "/return-policy",
+    "/shipping-policy",
     ...productDivisions.map((d) => `/divisions/${d.slug}`),
     ...serviceLines.map((s) => s.href),
   ].map((path) => ({

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
@@ -92,6 +93,7 @@ const getProductPageData = unstable_cache(async (slug: string) => {
           molecule: {
             select: {
               name: true,
+              slug: true,
             },
           },
         },
@@ -180,6 +182,31 @@ function getProductMatchTokens(product: { salts: string | null; molecules: { mol
   return tokens;
 }
 
+function MoleculeLinks({
+  molecules,
+  fallback,
+}: {
+  molecules: { molecule: { name: string; slug: string } }[];
+  fallback: string;
+}) {
+  if (molecules.length === 0) {
+    return <>{fallback}</>;
+  }
+
+  return (
+    <>
+      {molecules.map(({ molecule }, index) => (
+        <span key={molecule.slug}>
+          {index > 0 ? ", " : ""}
+          <Link href={`/molecules/${molecule.slug}`} className="text-primary hover:underline">
+            {molecule.name}
+          </Link>
+        </span>
+      ))}
+    </>
+  );
+}
+
 function ProductShelfCard({
   product,
   eyebrow,
@@ -197,7 +224,7 @@ function ProductShelfCard({
           alt={`${product.name} product image`}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
-          className="object-cover"
+          className="object-contain p-3"
         />
       </div>
       <div className="space-y-3 p-5">
@@ -500,7 +527,10 @@ export default async function ProductDetailPage({ params }: Props) {
                 {[
                   { label: "Dosage", value: product.dosage || "On request" },
                   { label: "Pack Size", value: product.packSize || "On request" },
-                  { label: "Active Ingredient / Salt", value: product.salts || "On request" },
+                  {
+                    label: "Active Ingredient / Salt",
+                    value: <MoleculeLinks molecules={product.molecules} fallback={product.salts || "On request"} />,
+                  },
                 ].map((item) => (
                   <div key={item.label} className="rounded-2xl border border-border/70 bg-card px-4 py-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
@@ -556,15 +586,20 @@ export default async function ProductDetailPage({ params }: Props) {
             <div className="rounded-[2rem] border border-border/70 bg-card p-6 shadow-sm md:p-8">
               <h2 className="font-(family-name:--font-display) text-3xl text-foreground">Product Info</h2>
               <dl className="mt-5 space-y-4 text-sm">
-                {[
-                  ["Price", `${formatInrFromPaise(product.pricePaise)}${product.priceSuffix ? ` ${product.priceSuffix}` : ""}`],
-                  ["MRP", product.mrpPaise ? `${formatInrFromPaise(product.mrpPaise)}${product.mrpSuffix ? ` ${product.mrpSuffix}` : ""}` : "Not listed"],
-                  ["Dosage", product.dosage || "Not listed"],
-                  ["Pack Size", product.packSize || "Not listed"],
-                  ["Manufacturer", product.manufacturer || "Not listed"],
-                  ["Active Ingredient", product.salts || "Not listed"],
-                  ["Category", product.category?.name || "Not listed"],
-                ].map(([label, value]) => (
+                {(
+                  [
+                    ["Price", `${formatInrFromPaise(product.pricePaise)}${product.priceSuffix ? ` ${product.priceSuffix}` : ""}`],
+                    ["MRP", product.mrpPaise ? `${formatInrFromPaise(product.mrpPaise)}${product.mrpSuffix ? ` ${product.mrpSuffix}` : ""}` : "Not listed"],
+                    ["Dosage", product.dosage || "Not listed"],
+                    ["Pack Size", product.packSize || "Not listed"],
+                    ["Manufacturer", product.manufacturer || "Not listed"],
+                    [
+                      "Active Ingredient",
+                      <MoleculeLinks key="molecules" molecules={product.molecules} fallback={product.salts || "Not listed"} />,
+                    ],
+                    ["Category", product.category?.name || "Not listed"],
+                  ] as [string, ReactNode][]
+                ).map(([label, value]) => (
                   <div key={label} className="flex items-start justify-between gap-4 border-b border-border/60 pb-3 last:border-b-0 last:pb-0">
                     <dt className="font-medium text-foreground">{label}</dt>
                     <dd className="max-w-[60%] text-right leading-6 text-muted-foreground">{value}</dd>

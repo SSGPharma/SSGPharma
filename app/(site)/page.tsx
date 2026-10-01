@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Hero } from "@/components/marketing/hero";
 import { HomepageSearchSection } from "@/components/marketing/homepage-search";
 import { StatsSection } from "@/components/marketing/stats-section";
@@ -8,7 +9,6 @@ import { FadeIn } from "@/components/motion/fade-in";
 import { StaggerItem, StaggerList } from "@/components/motion/stagger-list";
 import { buttonVariants } from "@/components/ui/button";
 import { productDivisions } from "@/lib/divisions";
-import { marketingImages } from "@/lib/marketing-images";
 import { getCachedHomepageProducts } from "@/lib/catalog-data";
 import { cn } from "@/lib/utils";
 
@@ -34,10 +34,16 @@ const pillars = [
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const { products, productCount } = await getCachedHomepageProducts().catch(() => ({
-    products: [],
-    productCount: 0,
-  }));
+  // Forces dynamic (per-request) rendering instead of build-time static
+  // prerendering — see the identical fix/comment on the molecules list page
+  // for why: Render's persistent disk (the SQLite file) isn't mounted during
+  // `next build`, so a build-time query here would silently bake in an empty
+  // product showcase until a real runtime request triggers revalidation.
+  await connection();
+  const { products, productCount } = await getCachedHomepageProducts().catch((error) => {
+    console.error("Failed to load homepage products", error);
+    return { products: [], productCount: 0 };
+  });
 
   return (
     <>
@@ -58,12 +64,12 @@ export default async function HomePage() {
               is already on the bed and the clock is ticking.
             </p>
           </FadeIn>
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border shadow-lg">
+          <div className="relative aspect-[1691/930] w-full overflow-hidden rounded-2xl border border-border shadow-lg">
             <Image
-              src={marketingImages.consultation}
+              src="/homepage-mid.png"
               alt="Healthcare procurement and pharmacy coordination"
               fill
-              className="object-cover"
+              className="object-contain"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
@@ -126,12 +132,12 @@ export default async function HomePage() {
 
       <section className="w-full border-t border-border/60 bg-primary/5 py-16 md:py-24">
         <div className="mx-auto grid max-w-[1400px] gap-10 px-4 md:grid-cols-2 md:items-center md:gap-16 md:px-8">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-primary/20 shadow-md">
+          <div className="relative aspect-[1565/1005] overflow-hidden rounded-2xl border border-primary/20 shadow-md">
             <Image
-              src={marketingImages.warehouse}
+              src="/homepage-bottom.png"
               alt="Medicine warehousing and nationwide distribution"
               fill
-              className="object-cover"
+              className="object-contain"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>

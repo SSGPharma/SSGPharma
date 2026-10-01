@@ -12,7 +12,7 @@ const nullableImageReferenceSchema = z.preprocess((value) => {
 export const createProductSchema = z.object({
   name: z.string().trim().min(1, "Product name is required").max(160, "Name is too long"),
   slug: z.string().trim().min(1, "Slug is required").max(180, "Slug is too long"),
-  categoryId: z.string().optional().nullable(),
+  categoryId: z.string().trim().min(1, "Category is required"),
   manufacturer: z.string().trim().max(160, "Manufacturer is too long").optional(),
   isActive: z.boolean().default(true),
   pricePaise: z.number().int().min(0, "Price must be non-negative"),
