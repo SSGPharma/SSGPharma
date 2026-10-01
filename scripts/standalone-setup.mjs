@@ -27,4 +27,13 @@ console.log("Copying public/ → standalone/public")
 mkdirSync(publicDst, { recursive: true })
 cpSync(publicSrc, publicDst, { recursive: true })
 
+// Copy Prisma query engine binary so standalone server can connect to SQLite
+const prismaSrc = join(root, "node_modules", ".prisma", "client")
+const prismaDst = join(standalone, "node_modules", ".prisma", "client")
+if (existsSync(prismaSrc)) {
+  console.log("Copying .prisma/client → standalone/node_modules/.prisma/client")
+  mkdirSync(prismaDst, { recursive: true })
+  cpSync(prismaSrc, prismaDst, { recursive: true })
+}
+
 console.log("Standalone setup complete.")
