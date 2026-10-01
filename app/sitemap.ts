@@ -61,7 +61,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.82,
     }));
-  } catch {
+  } catch (error) {
+    console.error("Sitemap DB query failed:", error);
     // DB missing in CI / edge cases — still ship static URLs
   }
 
