@@ -18,22 +18,20 @@ export function ProductSearch({
   initialQuery = "",
   value,
 }: Props) {
-  const [query, setQuery] = useState(value ?? initialQuery);
-  const controlledValue = value !== undefined ? value : query;
+  const [localQuery, setLocalQuery] = useState(value ?? initialQuery ?? "");
+
+  // When controlled value prop changes (e.g. from URL/direct link), sync local state.
+  // When typing, we keep local state responsive; parent manages URL separately.
+  const controlled = value !== undefined ? value : localQuery;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nextValue = e.target.value;
-    if (value === undefined && nextValue !== controlledValue) {
-      setQuery(nextValue);
-    }
-
-    onFilter(nextValue);
+    const next = e.target.value;
+    setLocalQuery(next);
+    onFilter(next);
   };
 
   const handleClear = () => {
-    if (value === undefined && controlledValue !== "") {
-      setQuery("");
-    }
+    setLocalQuery("");
     onFilter("");
   };
 
@@ -43,12 +41,12 @@ export function ProductSearch({
         <Search className="absolute left-3 size-4 text-muted-foreground" />
         <Input
           type="text"
-          value={controlledValue}
+          value={controlled}
           onChange={handleChange}
           placeholder={placeholder}
           className="pl-9 transition-all focus:ring-2 ring-primary/20"
         />
-        {controlledValue && (
+        {controlled && (
           <motion.button
             type="button"
             onClick={handleClear}
