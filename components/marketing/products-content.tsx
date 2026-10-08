@@ -64,24 +64,6 @@ export function ProductsContent({ items, division, initialQuery = "", page, tota
     );
   }, [items, searchQuery]);
 
-  // Sync URL only after user pauses typing (300ms). Keeps input responsive.
-  useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      const next = new URLSearchParams(window.location.search);
-      if (searchQuery.trim()) {
-        next.set("q", searchQuery.trim());
-      } else {
-        next.delete("q");
-      }
-      next.delete("page");
-      router.replace(`/products${next.toString() ? `?${next.toString()}` : ""}`);
-    }, 300);
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, [searchQuery, router]);
-
   // Clean up any pending debounce timer when the component unmounts.
   useEffect(() => {
     return () => {
@@ -97,7 +79,17 @@ export function ProductsContent({ items, division, initialQuery = "", page, tota
         <ProductSearch
           initialQuery={initialQuery}
           value={searchQuery}
-          onFilter={setSearchQuery}
+          onFilter={(query) => {
+            setSearchQuery(query);
+            const next = new URLSearchParams(window.location.search);
+            if (query.trim()) {
+              next.set("q", query.trim());
+            } else {
+              next.delete("q");
+            }
+            next.delete("page");
+            router.replace(`/products${next.toString() ? `?${next.toString()}` : ""}`);
+          }}
         />
 
         {totalCount > 0 && (

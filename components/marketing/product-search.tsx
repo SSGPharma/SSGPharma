@@ -27,7 +27,14 @@ export function ProductSearch({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value;
     setLocalQuery(next);
-    onFilter(next);
+    // Only update parent filter state when explicitly submitted (Enter/Clear);
+    // typing stays local until submission.
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      onFilter(controlled);
+    }
   };
 
   const handleClear = () => {
@@ -43,6 +50,7 @@ export function ProductSearch({
           type="text"
           value={controlled}
           onChange={handleChange}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="pl-9 transition-all focus:ring-2 ring-primary/20"
         />
