@@ -18,22 +18,15 @@ export function ProductSearch({
   initialQuery = "",
   value,
 }: Props) {
-  const [localQuery, setLocalQuery] = useState(value ?? initialQuery ?? "");
-
-  // When controlled value prop changes (e.g. from URL/direct link), sync local state.
-  // When typing, we keep local state responsive; parent manages URL separately.
-  const controlled = value !== undefined ? value : localQuery;
+  const [localQuery, setLocalQuery] = useState(value !== undefined ? value : (initialQuery ?? ""));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = e.target.value;
-    setLocalQuery(next);
-    // Only update parent filter state when explicitly submitted (Enter/Clear);
-    // typing stays local until submission.
+    setLocalQuery(e.target.value);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      onFilter(controlled);
+      onFilter(localQuery);
     }
   };
 
@@ -48,13 +41,13 @@ export function ProductSearch({
         <Search className="absolute left-3 size-4 text-muted-foreground" />
         <Input
           type="text"
-          value={controlled}
+          value={localQuery}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="pl-9 transition-all focus:ring-2 ring-primary/20"
         />
-        {controlled && (
+        {localQuery && (
           <motion.button
             type="button"
             onClick={handleClear}

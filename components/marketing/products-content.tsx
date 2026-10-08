@@ -78,7 +78,6 @@ export function ProductsContent({ items, division, initialQuery = "", page, tota
       <div className="mb-8 space-y-4">
         <ProductSearch
           initialQuery={initialQuery}
-          value={searchQuery}
           onFilter={(query) => {
             setSearchQuery(query);
             const next = new URLSearchParams(window.location.search);
