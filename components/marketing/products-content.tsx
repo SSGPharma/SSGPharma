@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FadeIn } from "@/components/motion/fade-in";
@@ -41,6 +41,7 @@ type Props = {
 export function ProductsContent({ items, division, initialQuery = "", page, totalCount, totalPages }: Props) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const pageHref = (nextPage: number) => {
     const params = new URLSearchParams();
@@ -63,6 +64,15 @@ export function ProductsContent({ items, division, initialQuery = "", page, tota
     );
   }, [items, searchQuery]);
 
+  // Clean up any pending debounce timer when the component unmounts.
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 py-12 md:px-6 lg:px-8 md:py-16">
       <div className="mb-8 space-y-4">
@@ -70,14 +80,21 @@ export function ProductsContent({ items, division, initialQuery = "", page, tota
           initialQuery={initialQuery}
           onFilter={(query) => {
             setSearchQuery(query);
-            const next = new URLSearchParams(window.location.search);
-            if (query.trim()) {
-              next.set("q", query.trim());
-            } else {
-              next.delete("q");
+
+            // Cancel any pending timer and start a new debounce
+            if (debounceTimer.current) {
+              clearTimeout(debounceTimer.current);
             }
-            next.delete("page");
-            router.replace(`/products${next.toString() ? `?${next.toString()}` : ""}`);
+            debounceTimer.current = setTimeout(() => {
+              const next = new URLSearchParams(window.location.search);
+              if (query.trim()) {
+                next.set("q", query.trim());
+              } else {
+                next.delete("q");
+              }
+              next.delete("page");
+              router.replace(`/products${next.toString() ? `?${next.toString()}` : ""}`);
+            }, 300);
           }}
         />
 
@@ -92,6 +109,10 @@ export function ProductsContent({ items, division, initialQuery = "", page, tota
               <button
                 type="button"
                 onClick={() => {
+                  if (debounceTimer.current) {
+                    clearTimeout(debounceTimer.current);
+                    debounceTimer.current = null;
+                  }
                   setSearchQuery("");
                   const next = new URLSearchParams(window.location.search);
                   next.delete("q");
