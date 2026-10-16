@@ -37,8 +37,8 @@ export function Hero() {
               Browse catalog
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
-            <Link href="/get-a-quote" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
-              Request quote
+            <Link href="/contact-us" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
+              Contact us
             </Link>
           </div>
 

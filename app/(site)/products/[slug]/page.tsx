@@ -541,12 +541,6 @@ export default async function ProductDetailPage({ params }: Props) {
 
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/get-a-quote"
-                  className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                >
-                  Request Quote
-                </Link>
-                <Link
                   href="/contact-us"
                   className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-background px-6 text-sm font-medium hover:bg-muted"
                 >
@@ -794,12 +788,6 @@ export default async function ProductDetailPage({ params }: Props) {
               </p>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/get-a-quote"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              >
-                Get Quote for {product.name}
-              </Link>
               <Link
                 href="/contact-us"
                 className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-background px-6 text-sm font-medium hover:bg-muted"

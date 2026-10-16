@@ -6,6 +6,7 @@ import { Breadcrumbs } from "@/components/web/breadcrumbs";
 import { ManagedImage } from "@/components/web/managed-image";
 import { parseFaqText, parseReferenceText, summarizeText, toParagraphs } from "@/lib/content-parsers";
 import { marketingImages } from "@/lib/marketing-images";
+import { formatInrFromPaise } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -47,6 +48,8 @@ const getMoleculePageData = unstable_cache(async (slug: string) => {
               manufacturer: true,
               dosage: true,
               packSize: true,
+              pricePaise: true,
+              priceSuffix: true,
               description: true,
               isActive: true,
               category: {
@@ -302,14 +305,8 @@ export default async function MoleculeDetailPage({ params }: Props) {
 
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/get-a-quote"
-                  className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                >
-                  Request Quote
-                </Link>
-                <Link
                   href="/contact-us"
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-background px-6 text-sm font-medium hover:bg-muted"
+                  className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 >
                   Contact Us
                 </Link>
@@ -330,76 +327,88 @@ export default async function MoleculeDetailPage({ params }: Props) {
         </section>
 
         <section className="mx-auto max-w-350 space-y-8 px-4 py-10 md:px-6 lg:px-8 lg:py-14">
-          <MoleculeSection title="Overview" content={molecule.overview} />
-          <MoleculeSection title="Background and Date of Approval" content={molecule.backgroundAndApproval} />
-          <MoleculeSection title="Uses" content={molecule.uses} />
-          <MoleculeSection title="Administration" content={molecule.administration} />
-          <MoleculeSection title="Side Effects" content={molecule.sideEffects} />
-          <MoleculeSection title="Warnings" content={molecule.warnings} />
-          <MoleculeSection title="Precautions" content={molecule.precautions} />
-          <MoleculeSection title="Expert Tips" content={molecule.expertTips} />
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="space-y-8 lg:col-span-2">
+              <MoleculeSection title="Overview" content={molecule.overview} />
+              <MoleculeSection title="Background and Date of Approval" content={molecule.backgroundAndApproval} />
+              <MoleculeSection title="Uses" content={molecule.uses} />
+              <MoleculeSection title="Administration" content={molecule.administration} />
+              <MoleculeSection title="Side Effects" content={molecule.sideEffects} />
+              <MoleculeSection title="Warnings" content={molecule.warnings} />
+              <MoleculeSection title="Precautions" content={molecule.precautions} />
+              <MoleculeSection title="Expert Tips" content={molecule.expertTips} />
 
-          {faqs.length > 0 ? (
-            <section className="rounded-[2rem] border border-border/70 bg-card p-6 shadow-sm md:p-8">
-              <h2 className="font-[family-name:var(--font-display)] text-3xl text-foreground">FAQs</h2>
-              <div className="mt-6 space-y-4">
-                {faqs.map((faq) => (
-                  <div key={faq.question} className="rounded-2xl border border-border/70 bg-background/70 p-5">
-                    <h3 className="font-medium text-foreground">{faq.question}</h3>
-                    {faq.answer ? <p className="mt-2 text-sm leading-6 text-muted-foreground">{faq.answer}</p> : null}
+              {faqs.length > 0 ? (
+                <section className="rounded-[2rem] border border-border/70 bg-card p-6 shadow-sm md:p-8">
+                  <h2 className="font-[family-name:var(--font-display)] text-3xl text-foreground">FAQs</h2>
+                  <div className="mt-6 space-y-4">
+                    {faqs.map((faq) => (
+                      <div key={faq.question} className="rounded-2xl border border-border/70 bg-background/70 p-5">
+                        <h3 className="font-medium text-foreground">{faq.question}</h3>
+                        {faq.answer ? <p className="mt-2 text-sm leading-6 text-muted-foreground">{faq.answer}</p> : null}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
+                </section>
+              ) : null}
 
-          {references.length > 0 ? (
-            <section className="rounded-[2rem] border border-border/70 bg-card p-6 shadow-sm md:p-8">
-              <h2 className="font-[family-name:var(--font-display)] text-3xl text-foreground">References</h2>
-              <ol className="mt-6 space-y-3 text-sm leading-6 text-muted-foreground">
-                {references.map((reference, index) => (
-                  <li key={`${reference.label}-${index}`} className="rounded-2xl border border-border/70 bg-background/70 px-4 py-4">
-                    {reference.url ? (
-                      <a href={reference.url} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">
-                        {reference.label}
-                      </a>
-                    ) : (
-                      <span className="font-medium text-foreground">{reference.label}</span>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ) : null}
+              {references.length > 0 ? (
+                <section className="rounded-[2rem] border border-border/70 bg-card p-6 shadow-sm md:p-8">
+                  <h2 className="font-[family-name:var(--font-display)] text-3xl text-foreground">References</h2>
+                  <ol className="mt-6 space-y-3 text-sm leading-6 text-muted-foreground">
+                    {references.map((reference, index) => (
+                      <li key={`${reference.label}-${index}`} className="rounded-2xl border border-border/70 bg-background/70 px-4 py-4">
+                        {reference.url ? (
+                          <a href={reference.url} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">
+                            {reference.label}
+                          </a>
+                        ) : (
+                          <span className="font-medium text-foreground">{reference.label}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              ) : null}
+            </div>
 
-          {linkedProducts.length > 0 ? (
-            <section className="space-y-4">
-              <div className="space-y-2">
-                <h2 className="font-[family-name:var(--font-display)] text-3xl text-foreground">Products Linked to {molecule.name}</h2>
-                <p className="text-sm text-muted-foreground">Explore products in the catalog that are mapped to this molecule.</p>
+            <aside className="space-y-6">
+              <div className="rounded-xl border border-border/70 bg-card p-6 shadow-sm">
+                <h3 className="mb-3 font-semibold text-foreground">Related Products</h3>
+                {linkedProducts.length > 0 ? (
+                  <ul className="space-y-3">
+                    {linkedProducts.map((product) => (
+                      <li key={product.id} className="flex items-center justify-between gap-3">
+                        <Link href={`/products/${product.slug}`} className="text-sm text-primary hover:underline">
+                          {product.name}
+                        </Link>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {formatInrFromPaise(product.pricePaise)}
+                          {product.priceSuffix ?? ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <Link
+                  href={`/products?q=${encodeURIComponent(molecule.name)}`}
+                  className="mt-3 inline-block rounded bg-foreground/80 px-3 py-1.5 text-sm text-background hover:bg-foreground"
+                >
+                  Search Products
+                </Link>
               </div>
-              <div className="grid gap-6 lg:grid-cols-3">
-                {linkedProducts.map((product) => (
-                  <article key={product.id} className="rounded-[2rem] border border-border/70 bg-card p-5 shadow-sm">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{product.category?.name || "Product"}</p>
-                      <h3 className="mt-2 font-[family-name:var(--font-display)] text-2xl text-foreground">{product.name}</h3>
-                      <p className="mt-2 text-sm text-muted-foreground">{[product.manufacturer, product.dosage].filter(Boolean).join(" · ")}</p>
-                    </div>
-                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                      {summarizeText(product.description, 130) || `${product.name} is available for quote requests and procurement support.`}
-                    </p>
-                    <div className="mt-5 flex items-center justify-between gap-4">
-                      <span className="text-sm font-medium text-foreground">{product.packSize || "Pack size on request"}</span>
-                      <Link href={`/products/${product.slug}`} className="text-sm font-medium text-primary hover:underline">
-                        View product
-                      </Link>
-                    </div>
-                  </article>
-                ))}
+
+              <div className="rounded-xl border border-border/70 bg-card p-6 shadow-sm">
+                <h3 className="mb-3 font-semibold text-foreground">Need Help?</h3>
+                <Link
+                  href="/contact-us"
+                  className="block w-full rounded bg-primary py-2 text-center text-primary-foreground hover:bg-primary/90"
+                >
+                  Contact Us
+                </Link>
               </div>
-            </section>
-          ) : null}
+            </aside>
+          </div>
 
           {relatedPublishedMolecules.length > 0 ? (
             <section className="space-y-4">

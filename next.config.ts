@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
     remotePatterns: [],
     unoptimized: process.env.NODE_ENV !== "production",
   },
+  async redirects() {
+    return [{ source: "/get-a-quote", destination: "/contact-us", permanent: true }];
+  },
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },

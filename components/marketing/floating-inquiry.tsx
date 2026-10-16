@@ -24,8 +24,8 @@ export function FloatingInquiry({ primaryPhone, primaryEmail }: FloatingInquiryP
 
   const actions = [
     {
-      label: "Get a Quote",
-      href: "/get-a-quote",
+      label: "Contact Us",
+      href: "/contact-us",
       icon: MessageCircle,
     },
     {
