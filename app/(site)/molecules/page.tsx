@@ -168,8 +168,8 @@ export default async function MoleculesPage() {
               <p className="mt-5 text-muted-foreground leading-relaxed md:text-lg">
                 Browse structured molecule pages covering overview, approvals, use cases, administration, side effects, warnings, precautions, and expert guidance.
               </p>
-              <Link href="/get-a-quote" className={cn(buttonVariants({ size: "lg" }), "mt-8 w-fit")}>
-                Start a molecule enquiry
+              <Link href="/contact-us" className={cn(buttonVariants({ size: "lg" }), "mt-8 w-fit")}>
+                Contact us
               </Link>
             </FadeIn>
           </div>

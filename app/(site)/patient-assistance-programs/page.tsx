@@ -166,9 +166,6 @@ export default function PatientAssistancePage() {
             <Link href="/contact-us" className={cn(buttonVariants())}>
               Contact the desk
             </Link>
-            <Link href="/get-a-quote" className={cn(buttonVariants({ variant: "outline" }))}>
-              Structured quote
-            </Link>
           </div>
         </div>
       </ContentSection>

@@ -63,7 +63,7 @@ export default function HospitalSupplyPage() {
               carrier SLAs we can explain, and honest ETAs when monsoon or airport delays stack up.
             </p>
           </FadeIn>
-          <Link href="/get-a-quote" className="inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline">
+          <Link href="/contact-us" className="inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline">
             Send a hospital indent →
           </Link>
         </div>

@@ -153,9 +153,6 @@ export default async function HomePage() {
               <Link href="/contact-us" className={cn(buttonVariants({ size: "lg" }))}>
                 Contact the desk
               </Link>
-              <Link href="/get-a-quote" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
-                Upload requirement
-              </Link>
             </div>
           </FadeIn>
         </div>

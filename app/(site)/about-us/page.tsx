@@ -136,11 +136,8 @@ export default function AboutPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href="/get-a-quote" className={cn(buttonVariants({ size: "lg" }))}>
-            Request a quote
-          </Link>
-          <Link href="/contact-us" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
-            Contact
+          <Link href="/contact-us" className={cn(buttonVariants({ size: "lg" }))}>
+            Contact us
           </Link>
         </div>
       </ContentSection>

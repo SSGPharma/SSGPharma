@@ -58,12 +58,7 @@ export function SiteFooter() {
             ))}
             <li>
               <Link className="transition-colors duration-200 hover:text-foreground" href="/contact-us">
-                Contact
-              </Link>
-            </li>
-            <li>
-              <Link className="transition-colors duration-200 hover:text-foreground" href="/get-a-quote">
-                Request a quote
+                Contact us
               </Link>
             </li>
           </ul>

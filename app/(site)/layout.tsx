@@ -1,3 +1,4 @@
+import { TopBar } from "@/components/web/top-bar";
 import { Navbar } from "@/components/web/navbar";
 import { SiteFooter } from "@/components/web/footer";
 import { FloatingInquiry } from "@/components/marketing/floating-inquiry";
@@ -18,6 +19,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       >
         Skip to main content
       </a>
+      <TopBar phones={contactConfig.phones} emails={contactConfig.emails} />
       <Navbar />
       <main id="main-content" className="w-full flex-1">
         {children}

@@ -235,10 +235,7 @@ export function Navbar() {
           </Link>
 
           <Link className={cn(buttonVariants(), "ml-2")} href="/contact-us">
-            Contact
-          </Link>
-          <Link className={cn(buttonVariants({ variant: "outline" }), "ml-1")} href="/get-a-quote">
-            Quote
+            Contact us
           </Link>
           <div className="ml-2 border-l border-border pl-2">
             <ThemeToggle />
@@ -372,14 +369,7 @@ export function Navbar() {
               </Link>
 
               <Link className={cn(buttonVariants(), "mt-2 justify-center")} href="/contact-us" onClick={closeMobileMenu}>
-                Contact
-              </Link>
-              <Link
-                className={cn(buttonVariants({ variant: "outline" }), "justify-center")}
-                href="/get-a-quote"
-                onClick={closeMobileMenu}
-              >
-                Request quote
+                Contact us
               </Link>
             </div>
           </motion.div>
