@@ -104,15 +104,16 @@ export function MedicineAssistanceModal({ primaryPhone }: MedicineAssistanceModa
         <Dialog.Title className="sr-only">Need help with a medicine?</Dialog.Title>
 
         {/* Close button */}
-        <button
-          ref={closeBtnRef}
-          type="button"
-          onClick={() => handleOpenChange(false)}
-          aria-label="Close medicine assistance popup"
-          className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/50 bg-muted/60 text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <Dialog.Close asChild>
+          <button
+            ref={closeBtnRef}
+            type="button"
+            aria-label="Close medicine assistance popup"
+            className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/50 bg-muted/60 text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </Dialog.Close>
 
         <div className="flex flex-col items-center text-center">
           <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary shadow-inner">
