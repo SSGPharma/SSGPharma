@@ -118,7 +118,7 @@ export function MoleculesSearch({ molecules, moleculeCount }: MoleculesSearchPro
           filteredMolecules.map((molecule, index) => (
             <FadeIn key={molecule.id} delay={Math.min(index * 0.03, 0.18)}>
               <article className="overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm transition-shadow hover:shadow-md">
-                <div className="relative flex h-52 items-center justify-center overflow-hidden bg-accent/10">
+                <div className="relative flex h-52 items-center justify-center overflow-hidden bg-white">
                   <ManagedImage
                     src={molecule.imageUrl || marketingImages.microscope}
                     alt={`${molecule.name} molecule page image`}

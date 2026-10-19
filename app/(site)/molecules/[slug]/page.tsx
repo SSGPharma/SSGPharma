@@ -273,7 +273,7 @@ export default async function MoleculeDetailPage({ params }: Props) {
                 </h1>
                 {molecule.synonyms ? <p className="text-sm leading-6 text-muted-foreground md:text-base">Synonyms: {molecule.synonyms}</p> : null}
 
-                <div className="relative flex min-h-80 w-full items-center justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-accent/10 shadow-sm md:hidden">
+                <div className="relative flex min-h-80 w-full items-center justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-white shadow-sm md:hidden">
                   <ManagedImage
                     src={imageSrc}
                     alt={`${molecule.name} molecule page image`}
@@ -313,7 +313,7 @@ export default async function MoleculeDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="relative hidden min-h-96 w-full items-center justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-accent/10 shadow-sm lg:min-h-[420px] md:flex">
+            <div className="relative hidden min-h-96 w-full items-center justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-white shadow-sm lg:min-h-[420px] md:flex">
               <ManagedImage
                 src={imageSrc}
                 alt={`${molecule.name} molecule page image`}
