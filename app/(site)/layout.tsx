@@ -2,6 +2,7 @@ import { TopBar } from "@/components/web/top-bar";
 import { Navbar } from "@/components/web/navbar";
 import { SiteFooter } from "@/components/web/footer";
 import { FloatingInquiry } from "@/components/marketing/floating-inquiry";
+import { MedicineAssistanceModal } from "@/components/marketing/medicine-assistance-modal";
 import { defaultPublicContactConfig, getContactConfig } from "@/lib/contact-config";
 
 export const revalidate = 3600;
@@ -26,6 +27,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       </main>
       <SiteFooter />
       <FloatingInquiry primaryPhone={primaryPhone} primaryEmail={primaryEmail} />
+      <MedicineAssistanceModal primaryPhone={primaryPhone} />
     </div>
   );
 }
