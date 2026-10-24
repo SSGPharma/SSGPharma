@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { getSiteUrl } from "@/lib/site-url";
 import { cn } from "@/lib/utils";
 import { MoleculesSearch } from "@/components/molecules/molecules-search";
+import { MoleculeAlphaDir } from "@/components/molecules/molecule-alpha-dir";
 
 const siteUrl = getSiteUrl();
 const pageUrl = `${siteUrl}/molecules`;
@@ -68,7 +69,7 @@ const getMoleculesPageData = unstable_cache(
     prisma.molecule.findMany({
       where: { isPublished: true },
       orderBy: [{ updatedAt: "desc" }],
-      take: 24,
+      take: 200,
       select: {
         id: true,
         name: true,
@@ -188,8 +189,11 @@ export default async function MoleculesPage() {
             </div>
           </FadeIn>
 
-          <div className="mt-8">
-            <MoleculesSearch molecules={molecules} moleculeCount={molecules.length} />
+          <div className="mt-8 space-y-10">
+            <MoleculeAlphaDir molecules={molecules} />
+            <div className="pt-6 border-t border-border/60">
+              <MoleculesSearch molecules={molecules} moleculeCount={molecules.length} />
+            </div>
           </div>
         </ContentSection>
 
