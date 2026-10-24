@@ -34,7 +34,7 @@ export type CreateContactPhoneInput = z.infer<typeof createContactPhoneSchema>;
 export type CreateContactEmailInput = z.infer<typeof createContactEmailSchema>;
 export type UpdateContactConfigInput = z.infer<typeof updateContactConfigSchema>;
 
-export const inquiryTypeValues = ["general", "product", "partnership", "wholesale", "complaint", "other"] as const;
+export const inquiryTypeValues = ["general", "product", "partnership", "wholesale", "complaint", "other", "quote"] as const;
 
 export const createInquirySchema = z.object({
   name: z.string().trim().min(2, "Please enter your full name").max(100, "Name is too long"),
@@ -49,6 +49,10 @@ export const createInquirySchema = z.object({
   inquiryType: z.enum(inquiryTypeValues).default("general"),
   subject: z.string().trim().min(5, "Subject must be at least 5 characters").max(200, "Subject is too long"),
   message: z.string().trim().min(20, "Message must be at least 20 characters").max(2000, "Message is too long"),
+  quantity: z.string().trim().max(100, "Quantity is too long").optional(),
+  urgency: z.enum(["low", "medium", "high", "urgent"]).optional(),
+  delivery: z.string().trim().max(200, "Delivery location is too long").optional(),
+  dosage: z.string().trim().max(100, "Dosage is too long").optional(),
   /** Honeypot — real users never fill this in. */
   website: z.string().max(0).optional(),
 });

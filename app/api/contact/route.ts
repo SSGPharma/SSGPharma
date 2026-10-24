@@ -32,9 +32,20 @@ export async function POST(request: Request) {
     }
 
     const { name, email, phone, company, inquiryType, subject, message } = parsed.data;
-    const fullMessage = [`Subject: ${subject}`, company ? `Company: ${company}` : null, "", message]
-      .filter((line) => line !== null)
-      .join("\n");
+    const extraFields: Record<string, string | undefined> = {};
+    const raw = parsed.data as Record<string, unknown>;
+    if (typeof raw.quantity === "string" && raw.quantity.trim()) extraFields.quantity = raw.quantity.trim();
+    if (typeof raw.urgency === "string" && raw.urgency.trim()) extraFields.urgency = raw.urgency.trim();
+    if (typeof raw.delivery === "string" && raw.delivery.trim()) extraFields.delivery = raw.delivery.trim();
+    if (typeof raw.dosage === "string" && raw.dosage.trim()) extraFields.dosage = raw.dosage.trim();
+
+    const fullMessageParts = [`Subject: ${subject}`, company ? `Company: ${company}` : null, ""];
+    if (extraFields.quantity) fullMessageParts.push(`Quantity: ${extraFields.quantity}`);
+    if (extraFields.urgency) fullMessageParts.push(`Urgency: ${extraFields.urgency}`);
+    if (extraFields.delivery) fullMessageParts.push(`Delivery: ${extraFields.delivery}`);
+    if (extraFields.dosage) fullMessageParts.push(`Dosage: ${extraFields.dosage}`);
+    fullMessageParts.push("", message);
+    const fullMessage = fullMessageParts.filter((line) => line !== null).join("\n");
 
     await prisma.inquiry.create({
       data: { name, email, phone: phone || null, message: fullMessage, inquiryType },
