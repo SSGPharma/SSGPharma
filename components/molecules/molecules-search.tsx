@@ -20,18 +20,28 @@ interface Molecule {
 interface MoleculesSearchProps {
   molecules: Molecule[];
   moleculeCount: number;
+  alpha?: string | null;
 }
 
-export function MoleculesSearch({ molecules, moleculeCount }: MoleculesSearchProps) {
+export function MoleculesSearch({ molecules, moleculeCount, alpha }: MoleculesSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Apply both search and letter filter to the full catalog
+  const preFiltered = useMemo(() => {
+    let list = molecules;
+    if (alpha) {
+      list = list.filter((m) => m.name.trim()[0]?.toUpperCase() === alpha);
+    }
+    return list;
+  }, [molecules, alpha]);
 
   // Simple fuzzy search implementation
   const filteredMolecules = useMemo(() => {
-    if (!searchQuery.trim()) return molecules;
+    if (!searchQuery.trim()) return preFiltered;
 
     const query = searchQuery.toLowerCase();
 
-    return molecules.filter((molecule) => {
+    return preFiltered.filter((molecule) => {
       const name = molecule.name.toLowerCase();
       const synonyms = (molecule.synonyms || "").toLowerCase();
       const overview = (molecule.overview || "").toLowerCase();
@@ -63,7 +73,7 @@ export function MoleculesSearch({ molecules, moleculeCount }: MoleculesSearchPro
       const words = query.split(/\s+/);
       return words.some((word) => overview.includes(word));
     });
-  }, [searchQuery, molecules]);
+  }, [searchQuery, preFiltered]);
 
   return (
     <div className="space-y-8">
