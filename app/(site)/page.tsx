@@ -1,3 +1,4 @@
+import { PartnerCta } from "@/components/marketing/partner-cta";
 import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -130,33 +131,8 @@ export default async function HomePage() {
 
       <TestimonialsSection />
 
-      <section className="w-full border-t border-border/60 bg-primary/5 py-16 md:py-24">
-        <div className="mx-auto grid max-w-[1400px] gap-10 px-4 md:grid-cols-2 md:items-center md:gap-16 md:px-8">
-          <div className="relative aspect-[1565/1005] overflow-hidden rounded-2xl border border-primary/20 shadow-md">
-            <Image
-              src="/homepage-bottom.png"
-              alt="Medicine warehousing and nationwide distribution"
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          </div>
-          <FadeIn>
-            <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-tight md:text-4xl">
-              Need a line item quote today?
-            </h2>
-            <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
-              Send your indent — we will confirm availability, suggest alternatives if needed, and keep the thread in one
-              place.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/contact-us" className={cn(buttonVariants({ size: "lg" }))}>
-                Contact the desk
-              </Link>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
+      <PartnerCta />
+
     </>
   );
 }
