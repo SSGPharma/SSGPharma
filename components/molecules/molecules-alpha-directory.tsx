@@ -22,9 +22,12 @@ interface Props {
   initialAlpha?: string | null;
 }
 
+const PAGE_SIZE = 10;
+
 export function MoleculesAlphaDirectory({ molecules, initialAlpha }: Props) {
   const [alpha, setAlpha] = useState<string | null>(initialAlpha ?? null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   const letters = useMemo(() => {
     const set = new Set<string>();
@@ -42,44 +45,38 @@ export function MoleculesAlphaDirectory({ molecules, initialAlpha }: Props) {
     if (alpha) {
       list = list.filter((m) => m.name.trim()[0]?.toUpperCase() === alpha);
     }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    const q = searchQuery.trim();
+    if (q) {
+      const lowerQ = q.toLowerCase();
       list = list.filter((m) => {
         const name = m.name.toLowerCase();
-        const synonyms = (m.synonyms || "").toLowerCase();
-        const overview = (m.overview || "").toLowerCase();
-        if (name.includes(q) || synonyms.includes(q)) return true;
-        let idx = 0;
-        for (let i = 0; i < name.length && idx < q.length; i++) {
-          if (name[i] === q[idx]) idx++;
-        }
-        if (idx === q.length) return true;
-        idx = 0;
-        for (let i = 0; i < synonyms.length && idx < q.length; i++) {
-          if (synonyms[i] === q[idx]) idx++;
-        }
-        if (idx === q.length) return true;
-        const words = q.split(/\s+/);
-        return words.some((w) => overview.includes(w));
+        return name.startsWith(lowerQ);
       });
     }
     return list.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
   }, [molecules, alpha, searchQuery]);
 
-  const grouped = useMemo(() => {
-    const g: Record<string, Molecule[]> = {};
-    for (const m of filtered) {
-      const k = m.name.trim()[0]?.toUpperCase() || "?";
-      if (!g[k]) g[k] = [];
-      g[k].push(m);
-    }
-    return g;
-  }, [filtered]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, currentPage]);
 
   const clear = () => {
     setAlpha(null);
     setSearchQuery("");
+    setPage(1);
   };
+
+  const handleAlpha = (l: string | null) => {
+    setAlpha(l);
+    setPage(1);
+  };
+
+  const resultStart = filtered.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const resultEnd = Math.min(currentPage * PAGE_SIZE, filtered.length);
 
   return (
     <section aria-label="A-Z Molecules Directory" className="space-y-8">
@@ -95,7 +92,10 @@ export function MoleculesAlphaDirectory({ molecules, initialAlpha }: Props) {
                 role="tab"
                 aria-selected={isActive}
                 aria-label={`Letter ${l}${present ? "" : ", no molecules"}`}
-                onClick={() => setAlpha(isActive ? null : (present ? l : alpha))}
+                onClick={() => {
+              const next = isActive ? null : (present ? l : alpha);
+              handleAlpha(next);
+            }}
                 disabled={!present && !isActive}
                 className={cn(
                   "min-w-[2.25rem] rounded-lg border px-2.5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40",
@@ -119,14 +119,20 @@ export function MoleculesAlphaDirectory({ molecules, initialAlpha }: Props) {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
             placeholder="Search molecules..."
             className="w-full rounded-xl border border-border/70 bg-muted/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/60"
             aria-label="Search molecule directory"
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery("")}
+              onClick={() => {
+                setSearchQuery("");
+                setPage(1);
+              }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
               aria-label="Clear search"
             >
@@ -135,9 +141,9 @@ export function MoleculesAlphaDirectory({ molecules, initialAlpha }: Props) {
           )}
         </div>
         <div className="text-sm text-muted-foreground">
-          {filtered.length} of {molecules.length} molecules
+          {filtered.length > 0 ? `${resultStart}-${resultEnd} of ${filtered.length}` : "0"} molecules
           {alpha ? ` · ${alpha}` : ""}
-          {searchQuery ? ` · "${searchQuery}"` : ""}
+          {searchQuery.trim() ? ` · "${searchQuery.trim()}"` : ""}
         </div>
         {(alpha || searchQuery) && (
           <button onClick={clear} className="text-sm font-medium text-primary hover:underline" aria-label="Reset filters">
@@ -154,54 +160,102 @@ export function MoleculesAlphaDirectory({ molecules, initialAlpha }: Props) {
         </div>
       )}
 
-      {/* Visual cards grouped by letter */}
+      {/* Cards — paginated, flat grid (no letter grouping) */}
       {filtered.length > 0 && (
-        <div className="space-y-10">
-          {Object.keys(grouped).sort((a, b) => a.localeCompare(b)).map((letter) => (
-            <section key={letter} aria-labelledby={`heading-${letter}`}>
-              <h2 id={`heading-${letter}`} className="mb-4 font-[family-name:var(--font-display)] text-3xl tracking-tight text-foreground">
-                {letter}
-              </h2>
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {grouped[letter]?.map((molecule, index) => (
-                  <FadeIn key={molecule.id} delay={Math.min(index * 0.03, 0.18)}>
-                    <article className="overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm transition-shadow hover:shadow-md">
-                      <div className="relative flex h-52 items-center justify-center overflow-hidden bg-white">
-                        <ManagedImage
-                          src={molecule.imageUrl || marketingImages.microscope}
-                          alt={`${molecule.name} molecule page image`}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                          className="object-contain"
-                        />
-                      </div>
-                      <div className="space-y-4 p-6">
-                        <div>
-                          <h3 className="font-(family-name:--font-display) text-2xl text-foreground">
-                            {molecule.name}
-                          </h3>
-                          {molecule.synonyms ? (
-                            <p className="mt-2 text-sm text-muted-foreground">{molecule.synonyms}</p>
-                          ) : null}
-                        </div>
-                        <p className="text-sm leading-6 text-muted-foreground">
-                          {summarizeText(molecule.overview, 150) ||
-                            `${molecule.name} molecule profile covering overview, uses, and safety notes.`}
-                        </p>
-                        <Link
-                          href={`/molecules/${molecule.slug}`}
-                          className="inline-flex text-sm font-medium text-primary hover:underline"
-                        >
-                          View molecule page
-                        </Link>
-                      </div>
-                    </article>
-                  </FadeIn>
+        <>
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {paginated.map((molecule, index) => (
+              <FadeIn key={molecule.id} delay={Math.min(index * 0.03, 0.18)}>
+                <article className="overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm transition-shadow hover:shadow-md">
+                  <div className="relative flex h-52 items-center justify-center overflow-hidden bg-white">
+                    <ManagedImage
+                      src={molecule.imageUrl || marketingImages.microscope}
+                      alt={`${molecule.name} molecule page image`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-contain"
+                    />
+                  </div>
+                  <div className="space-y-4 p-6">
+                    <div>
+                      <h3 className="font-(family-name:--font-display) text-2xl text-foreground">
+                        {molecule.name}
+                      </h3>
+                      {molecule.synonyms ? (
+                        <p className="mt-2 text-sm text-muted-foreground">{molecule.synonyms}</p>
+                      ) : null}
+                    </div>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {summarizeText(molecule.overview, 150) ||
+                        `${molecule.name} molecule profile covering overview, uses, and safety notes.`}
+                    </p>
+                    <Link
+                      href={`/molecules/${molecule.slug}`}
+                      className="inline-flex text-sm font-medium text-primary hover:underline"
+                    >
+                      View molecule page
+                    </Link>
+                  </div>
+                </article>
+              </FadeIn>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between gap-4 pt-4">
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                className={cn(
+                  "rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40",
+                  currentPage <= 1
+                    ? "border-border/40 bg-muted/40 text-muted-foreground cursor-default"
+                    : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/5",
+                )}
+                aria-label="Previous page"
+              >
+                Previous
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    aria-label={`Page ${p}`}
+                    aria-current={p === currentPage ? "page" : undefined}
+                    className={cn(
+                      "min-w-[2.25rem] rounded-lg px-2.5 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40",
+                      p === currentPage
+                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                        : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/5",
+                    )}
+                  >
+                    {p}
+                  </button>
                 ))}
               </div>
-            </section>
-          ))}
-        </div>
+
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+                className={cn(
+                  "rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40",
+                  currentPage >= totalPages
+                    ? "border-border/40 bg-muted/40 text-muted-foreground cursor-default"
+                    : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/5",
+                )}
+                aria-label="Next page"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </section>
   );
