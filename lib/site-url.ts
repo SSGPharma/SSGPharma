@@ -5,11 +5,11 @@ export function getSiteUrl() {
     ? /^https?:\/\//i.test(raw)
       ? raw
       : `https://${raw}`
-    : "http://localhost:5050";
+    : "http://localhost:3000";
 
   try {
     return new URL(candidate).toString().replace(/\/$/, "");
   } catch {
-    return "http://localhost:5050";
+    return "http://localhost:3000";
   }
 }

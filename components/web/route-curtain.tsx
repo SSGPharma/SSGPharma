@@ -24,10 +24,16 @@ export function RouteCurtain() {
     }
 
     prevPathname.current = pathname;
-    setActive(true);
-    const timeout = window.setTimeout(() => setActive(false), 760);
+    let deactivateTimeout: number | undefined;
+    const activateTimeout = window.setTimeout(() => {
+      setActive(true);
+      deactivateTimeout = window.setTimeout(() => setActive(false), 760);
+    }, 0);
 
-    return () => window.clearTimeout(timeout);
+    return () => {
+      window.clearTimeout(activateTimeout);
+      if (deactivateTimeout !== undefined) window.clearTimeout(deactivateTimeout);
+    };
   }, [pathname]);
 
   return (

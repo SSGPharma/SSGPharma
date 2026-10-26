@@ -1,0 +1,67 @@
+name: Build and deploy to Lightsail
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+      - run: pnpm install --frozen-lockfile
+      - name: Verify migrations on the Ubuntu runner
+        env:
+          DATABASE_URL: file:/tmp/ssgpharma-ci-migrations.db
+        run: |
+          set -euo pipefail
+          trap 'rm -f /tmp/ssgpharma-ci-migrations.db*' EXIT
+          pnpm exec prisma migrate deploy --schema prisma/schema.prisma
+      - run: pnpm lint
+      - name: Validate public build configuration
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+        run: test -n "$NEXT_PUBLIC_SITE_URL"
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+          NEXT_PUBLIC_CDN_URL: ${{ vars.NEXT_PUBLIC_CDN_URL }}
+      - name: Package standalone release
+        run: |
+          set -euo pipefail
+          mkdir -p release-artifact/deploy release-artifact/prisma release-artifact/scripts
+          cp -a .next/standalone/. release-artifact/
+          cp -a prisma/schema.prisma prisma/migrations release-artifact/prisma/
+          cp -a deploy/. release-artifact/deploy/
+          cp scripts/verify-data.ts release-artifact/scripts/
+          tar -C release-artifact -czf release.tgz .
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.LIGHTSAIL_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+      - name: Upload and activate release
+        env:
+          DEPLOY_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          DEPLOY_USER: ${{ secrets.LIGHTSAIL_USER }}
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          scp -i "$HOME/.ssh/id_ed25519" release.tgz "$DEPLOY_USER@$DEPLOY_HOST:/tmp/ssgpharma-$RELEASE_ID.tgz"
+          ssh -i "$HOME/.ssh/id_ed25519" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "mkdir -p /srv/ssgpharma/releases/$RELEASE_ID && tar -xzf /tmp/ssgpharma-$RELEASE_ID.tgz -C /srv/ssgpharma/releases/$RELEASE_ID && rm /tmp/ssgpharma-$RELEASE_ID.tgz && /srv/ssgpharma/releases/$RELEASE_ID/deploy/activate-release.sh $RELEASE_ID"

@@ -1,0 +1,15 @@
+[Unit]
+Description=SSGPharma SQLite and uploads backup
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ssgpharma
+Group=ssgpharma
+EnvironmentFile=/srv/ssgpharma/shared/.env
+Environment=DB_PATH=/srv/ssgpharma/shared/data/prod.db
+Environment=UPLOADS_DIR=/srv/ssgpharma/shared/uploads
+Environment=BACKUP_DIR=/srv/ssgpharma/shared/backups
+ExecStart=/srv/ssgpharma/current/deploy/backup.sh
+StandardOutput=append:/var/log/ssgpharma/backup.log
+StandardError=append:/var/log/ssgpharma/backup.log

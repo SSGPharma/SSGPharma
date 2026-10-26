@@ -1,10 +1,10 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 APP_DIR="${APP_DIR:-$(pwd)}"
 cd "$APP_DIR"
 
 echo "Enter new admin password:"
-read -s NEW_PASSWORD
+read -r -s NEW_PASSWORD
 echo
 
 if [ ${#NEW_PASSWORD} -lt 8 ]; then

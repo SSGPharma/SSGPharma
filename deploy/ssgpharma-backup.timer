@@ -1,0 +1,10 @@
+[Unit]
+Description=Run SSGPharma backup nightly
+
+[Timer]
+OnCalendar=*-*-* 02:15:00 UTC
+Persistent=true
+Unit=ssgpharma-backup.service
+
+[Install]
+WantedBy=timers.target

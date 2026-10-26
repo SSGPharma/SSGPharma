@@ -3,7 +3,7 @@ import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/web/breadcrumbs";
-import { ManagedImage } from "@/components/web/managed-image";
+import { MoleculeImage } from "@/components/molecules/molecule-image";
 import { parseFaqText, parseReferenceText, summarizeText, toParagraphs } from "@/lib/content-parsers";
 import { marketingImages } from "@/lib/marketing-images";
 import { formatInrFromPaise } from "@/lib/money";
@@ -274,13 +274,10 @@ export default async function MoleculeDetailPage({ params }: Props) {
                 {molecule.synonyms ? <p className="text-sm leading-6 text-muted-foreground md:text-base">Synonyms: {molecule.synonyms}</p> : null}
 
                 <div className="relative flex min-h-80 w-full items-center justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-white shadow-sm md:hidden">
-                  <ManagedImage
+                  <MoleculeImage
                     src={imageSrc}
                     alt={`${molecule.name} molecule page image`}
-                    fill
-                    priority
-                    sizes="100vw"
-                    className="object-contain"
+                    className="absolute inset-0 h-full w-full object-contain"
                   />
                 </div>
 
@@ -314,13 +311,10 @@ export default async function MoleculeDetailPage({ params }: Props) {
             </div>
 
             <div className="relative hidden min-h-96 w-full items-center justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-white shadow-sm lg:min-h-[420px] md:flex">
-              <ManagedImage
+              <MoleculeImage
                 src={imageSrc}
                 alt={`${molecule.name} molecule page image`}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 46vw"
-                className="object-contain"
+                className="absolute inset-0 h-full w-full object-contain"
               />
             </div>
           </div>

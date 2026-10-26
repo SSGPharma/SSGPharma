@@ -1,5 +1,6 @@
 # dependencies
 node_modules/
+/.pnpm-store/
 /.pnp
 .pnp.*
 .yarn/*
@@ -17,10 +18,15 @@ out/
 
 # production
 build/
-docs/
 # misc
 .DS_Store
 *.pem
+*.key
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+test.svg
 
 # debug
 npm-debug.log*
@@ -34,8 +40,6 @@ yarn-error.log*
 !.env.example
 
 # local sqlite
-*.db
-*.db-journal
 data/
 !data/
 !data/.gitkeep

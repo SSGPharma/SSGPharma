@@ -1,4 +1,6 @@
-# Render Deploy Guide
+# LEGACY: Render Deploy Guide
+
+Keep this guide until the Render service is cancelled.
 
 This app can run on Render without changing the database, but because it uses SQLite you must attach a persistent disk.
 

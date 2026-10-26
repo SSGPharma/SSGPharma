@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { FadeIn } from "@/components/motion/fade-in";
-import { ManagedImage } from "@/components/web/managed-image";
+import { MoleculeImage } from "@/components/molecules/molecule-image";
 import { marketingImages } from "@/lib/marketing-images";
 import { summarizeText } from "@/lib/content-parsers";
 import { Search } from "lucide-react";
@@ -129,11 +129,9 @@ export function MoleculesSearch({ molecules, moleculeCount, alpha }: MoleculesSe
             <FadeIn key={molecule.id} delay={Math.min(index * 0.03, 0.18)}>
               <article className="overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm transition-shadow hover:shadow-md">
                 <div className="relative flex h-52 items-center justify-center overflow-hidden bg-white">
-                  <ManagedImage
+                  <MoleculeImage
                     src={molecule.imageUrl || marketingImages.microscope}
                     alt={`${molecule.name} molecule page image`}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
                   />
                 </div>

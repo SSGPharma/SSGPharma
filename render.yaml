@@ -1,3 +1,4 @@
+# LEGACY Render configuration. Keep until the Render service is cancelled.
 services:
   - type: web
     name: medipro
@@ -21,3 +22,5 @@ services:
         generateValue: true
       - key: ADMIN_PASSWORD
         sync: false
+      - key: RENDER_RUNTIME_MIGRATIONS
+        value: "true"
