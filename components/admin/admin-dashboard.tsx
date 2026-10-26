@@ -325,13 +325,11 @@ function withinCurrentYear(value: string) {
   return current.getFullYear() === date.getFullYear();
 }
 
-function readFileAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-    reader.onerror = () => reject(new Error("Could not read file"));
-    reader.readAsDataURL(file);
-  });
+async function uploadImage(file: File): Promise<string> {
+  const response = await fetch("/api/admin/images", { method: "POST", headers: { "Content-Type": file.type }, body: file });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Image upload failed");
+  return data.key as string;
 }
 
 function isInlineImageValue(value: string) {
@@ -734,7 +732,7 @@ export function AdminDashboard() {
     if (!file) return;
 
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      const dataUrl = await uploadImage(file);
       setProductForm((current) => ({
         ...current,
         [`imageUrl${slot}`]: dataUrl,
@@ -750,7 +748,7 @@ export function AdminDashboard() {
     if (!file) return;
 
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      const dataUrl = await uploadImage(file);
       setMoleculeForm((current) => ({
         ...current,
         imageUrl: dataUrl,

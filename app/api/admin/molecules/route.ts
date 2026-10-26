@@ -4,6 +4,7 @@ import { requireAdminApi, requireAdminMutation } from "@/lib/require-admin";
 import { mutationErrorResponse, parseJsonBody } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { createMoleculeSchema } from "@/lib/validators/molecule";
+import { mirrorExternalImage } from "@/lib/mirror-image";
 
 function revalidateMoleculePaths(slug?: string) {
   revalidateTag("molecules", "max");
@@ -61,12 +62,15 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return parsed.response;
     const validated = parsed.data;
 
+    const imageUrl = validated.imageUrl && /^https?:\/\//i.test(validated.imageUrl)
+      ? await mirrorExternalImage(validated.imageUrl)
+      : validated.imageUrl ?? null;
     const molecule = await prisma.molecule.create({
       data: {
         name: validated.name,
         slug: validated.slug,
         synonyms: validated.synonyms,
-        imageUrl: validated.imageUrl ?? null,
+        imageUrl,
         isPublished: validated.isPublished,
         overview: validated.overview,
         backgroundAndApproval: validated.backgroundAndApproval,

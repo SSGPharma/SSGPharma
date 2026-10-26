@@ -1,154 +1,117 @@
-# Deployment Guide — AWS Lightsail (`ssgpharma.com`)
+# Lightsail Deployment and Cutover
 
-This repo now supports one-command bootstrap for a fresh Ubuntu Lightsail instance.
+This guide describes the Lightsail release workflow for a single Ubuntu 22.04/24.04 instance. The production app runs as `ssgpharma`, PM2 listens on `127.0.0.1:3000`, and Caddy terminates HTTPS. Render files remain available as legacy references until Render is cancelled.
 
-## DNS + Network Prerequisites
+## 1. Create the instance and point a temporary domain
 
-Before running scripts:
+Create an Ubuntu Lightsail instance, attach a static IP, and open SSH, HTTP, and HTTPS in the Lightsail firewall. Add an A record for the temporary host to the static IP and wait for DNS propagation. Lower the production DNS TTL before the final cutover.
 
-1. Attach a static IP to the instance.
-2. Add DNS records:
-   - `A` record for `@` -> Lightsail static IP
-   - `A` record for `www` -> Lightsail static IP
-3. Open Lightsail firewall ports:
-   - `22` (SSH)
-   - `80` (HTTP)
-   - `443` (HTTPS)
+## 2. Set up the server
 
-## Runtime Topology
-
-- Public traffic: `80/443`
-- Reverse proxy: `nginx`
-- App process: `pm2` process `nextapp`
-- App listen port: `5050` (`127.0.0.1:5050`)
-- SSL: `certbot` (nginx plugin)
-
-## `.env` Is Auto-Created
-
-You do not need to manually create `.env` anymore.  
-`deploy/create-env.sh` auto-generates a production `.env` (including secure random secrets) on first run.
-
-Defaults:
-
-- `NODE_ENV=production`
-- `NEXT_PUBLIC_SITE_URL=https://ssgpharma.com`
-- `DATABASE_URL=file:/var/www/app/data/prod.db`
-- `PORT=5050`
-- Random `ADMIN_SESSION_SECRET`
-- Random `ADMIN_PASSWORD` (printed once if not provided)
-
-Override any value by passing environment variables to bootstrap/deploy commands.
-
-## One-Command First-Time Bootstrap (Recommended)
-
-On the server:
+Clone the repository to a temporary working directory and run:
 
 ```bash
-sudo mkdir -p /var/www/app
-sudo chown -R $USER:$USER /var/www/app
-git clone <your-github-repo-url> /var/www/app
-cd /var/www/app
-CERTBOT_EMAIL=<your-email> bash deploy/bootstrap.sh
+bash deploy/setup-server.sh
+sudoedit /srv/ssgpharma/shared/.env
 ```
 
-What this does:
-1. Installs system dependencies (Node 20, pnpm, pm2, nginx, certbot).
-2. Creates `.env` automatically and deploys app.
-3. Builds standalone Next.js output.
-4. Starts/reloads PM2 app on port `5050`.
-5. Configures nginx for `ssgpharma.com` and `www.ssgpharma.com` (www redirects to root).
-6. Issues SSL certs and verifies renewal.
-7. Runs health checks.
+Populate the shared env file from `.env.example`; set production `DATABASE_URL=file:/srv/ssgpharma/shared/data/prod.db`, `UPLOADS_DIR=/srv/ssgpharma/shared/uploads`, `NEXT_PUBLIC_SITE_URL`, a random `ADMIN_SESSION_SECRET` of at least 32 characters, and `BACKUP_BUCKET`. Leave `STORAGE_DRIVER=local` unless S3 image storage is intentionally enabled. Never place secrets in the repository.
 
-## React 418 / Chunk 404 Recovery (Deterministic)
-
-If you see `Minified React error #418` with `/_next/...js 404`, run:
+Install Caddy for the temporary domain and set up the app user SSH key:
 
 ```bash
-cd /var/www/app
-APP_URL=https://ssgpharma.com APP_PORT=5050 bash deploy/recover-clean-build.sh
+DOMAIN=temporary.example.com bash deploy/install-caddy-config.sh
 ```
 
-This script performs:
-- runtime inspection (`.env` and Nginx `_next` path sanity),
-- full `.next` cleanup,
-- clean standalone rebuild,
-- PM2 reload,
-- Nginx reload and strict health checks.
+For PM2 startup and rotated logs, `setup-server.sh` installs PM2 and `pm2-logrotate`. Caddy obtains and renews HTTPS certificates automatically after public DNS resolves.
 
-### Runtime inspection only
-```bash
-cd /var/www/app
-STRICT_NGINX_CHECK=1 bash deploy/inspect-runtime.sh
-```
+## 3. Configure GitHub Actions
 
-## Alternative Manual First Deploy
+The workflow builds and lints on GitHub Actions, then uploads the standalone output. Add these repository Actions secrets:
 
-If you prefer step-by-step:
+- `LIGHTSAIL_HOST`: server IP or hostname
+- `LIGHTSAIL_USER`: SSH deployment user, normally `ssgpharma`
+- `LIGHTSAIL_SSH_KEY`: private SSH key authorized for that user
+- `LIGHTSAIL_KNOWN_HOSTS`: verified SSH host-key line(s)
 
-```bash
-bash deploy/setup-lightsail.sh
-REPO_URL=<your-github-repo-url> bash deploy/first-deploy.sh
-DOMAIN=ssgpharma.com WWW_DOMAIN=www.ssgpharma.com APP_PORT=5050 bash deploy/setup-nginx.sh
-DOMAIN=ssgpharma.com WWW_DOMAIN=www.ssgpharma.com CERTBOT_EMAIL=<your-email> bash deploy/setup-ssl.sh
-APP_URL=https://ssgpharma.com APP_PORT=5050 bash deploy/check-health.sh
-```
+Add the repository variable `NEXT_PUBLIC_SITE_URL` with the production HTTPS origin; the workflow requires it for correct canonical metadata. If S3 image storage is enabled, also define `NEXT_PUBLIC_CDN_URL` so the CI build generates the correct public image URLs and Next.js image allowlist. Keep `STORAGE_DRIVER=local` for the default local-disk behavior.
 
-## Every Subsequent Deploy
+Push to `main` or run the workflow manually. Migrations run before activation. A failed `/api/health` check restores the previous release. `deploy/rollback.sh` switches to the previous retained release. The last five releases are retained.
 
-After pushing to GitHub:
+## 4. Export Render data and import it
+
+On the Render shell, while the app still uses its persistent disk:
 
 ```bash
-cd /var/www/app
-bash deploy/deploy.sh
-APP_URL=https://ssgpharma.com APP_PORT=5050 bash deploy/check-health.sh
+DATABASE_URL=file:/opt/render/project/src/data/prod.db \
+RENDER_DISK_DIR=/opt/render/project/src/data \
+OUT_DIR="$PWD/render-export" bash deploy/export-from-render.sh
+cd render-export && sha256sum -c SHA256SUMS
 ```
 
-If this is a brand-new server and `.env` does not exist, deploy will auto-create it.
-
-## Useful Operations
-
-### Logs
-```bash
-pm2 logs nextapp
-pm2 logs nextapp --lines 100
-```
-
-### PM2 status/restart
-```bash
-pm2 status
-APP_PORT=5050 pm2 startOrReload deploy/ecosystem.config.cjs --env production
-pm2 save
-```
-
-### Reset admin password
-```bash
-cd /var/www/app
-bash deploy/reset-admin-password.sh
-```
-
-### If static assets break after deploy
-```bash
-cd /var/www/app
-APP_URL=https://ssgpharma.com APP_PORT=5050 bash deploy/recover-clean-build.sh
-```
-
-## Rollback (Quick)
+Download `prod.db`, `runtime-files.tar.gz`, and `SHA256SUMS` to the server using a secure transfer method. Keep site writes frozen during the final export/import. On the Lightsail host, place those files together, then:
 
 ```bash
-cd /var/www/app
-git log --oneline -n 5
-git checkout <previous-commit-sha>
-pnpm install --frozen-lockfile
-pnpm prisma migrate deploy
-pnpm build:standalone
-APP_PORT=5050 pm2 startOrReload deploy/ecosystem.config.cjs --env production
+cd /srv/ssgpharma/current
+bash deploy/import-to-server.sh /path/to/render-export
+DATABASE_URL=file:/opt/ssgpharma/shared/data/prod.db pnpm dlx ts-node scripts/verify-data.ts
 ```
 
-## Troubleshooting
+Run `scripts/verify-data.ts` on the Render shell too and compare table counts and spot-check rows. The script only reads data and prints row counts plus up to five product and molecule names/slugs.
 
-- `nginx -t` fails: inspect `/etc/nginx/sites-available/nextapp`.
-- certbot fails: verify DNS propagation and that port 80 is open.
-- app down but nginx up: check `pm2 logs nextapp`.
-- DB errors: verify `.env` `DATABASE_URL` uses absolute server path.
-- `/_next/_next/...` URLs: check `.env` does not set `NEXT_PUBLIC_ASSET_PREFIX=/_next`.
+## 5. Backups and restore
+
+`deploy/backup.sh` makes a consistent SQLite `.backup`, runs `PRAGMA integrity_check` on the copy, gzips and uploads it to `s3://$BACKUP_BUCKET/db/YYYY/MM/`; non-empty local uploads are archived under the matching `uploads/` prefix. It prunes local files older than seven days by default. Install the nightly UTC timer:
+
+```bash
+bash /srv/ssgpharma/current/deploy/install-backup-timer.sh
+systemctl list-timers ssgpharma-backup.timer
+tail -f /var/log/ssgpharma/backup.log
+```
+
+The bucket should have a lifecycle rule expiring objects under `db/` and `uploads/` after 30 days. Prefer the instance role. If a bucket-scoped policy is needed, replace `BUCKET_NAME`, attach it to the instance role, and grant only these operations:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Effect": "Allow", "Action": ["s3:ListBucket", "s3:ListBucketMultipartUploads"], "Resource": "arn:aws:s3:::BUCKET_NAME", "Condition": { "StringLike": { "s3:prefix": ["db/*", "uploads/*"] } } },
+    { "Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject", "s3:AbortMultipartUpload", "s3:ListMultipartUploadParts"], "Resource": ["arn:aws:s3:::BUCKET_NAME/db/*", "arn:aws:s3:::BUCKET_NAME/uploads/*"] }
+  ]
+}
+```
+
+Test a restore into a scratch path without touching production:
+
+```bash
+mkdir -p /tmp/ssg-restore
+aws s3 cp s3://BUCKET/db/YYYY/MM/prod-TIMESTAMP.db.gz /tmp/ssg-restore/db.gz
+gzip -dc /tmp/ssg-restore/db.gz > /tmp/ssg-restore/prod.db
+sqlite3 /tmp/ssg-restore/prod.db 'PRAGMA integrity_check;'
+DATABASE_URL=file:/tmp/ssg-restore/prod.db pnpm dlx ts-node scripts/verify-data.ts
+```
+
+Production restore command (stops PM2, keeps the old DB, then validates health):
+
+```bash
+DB_PATH=/srv/ssgpharma/shared/data/prod.db bash deploy/restore.sh s3://BUCKET/db/YYYY/MM/prod-TIMESTAMP.db.gz
+```
+
+## 6. DNS cutover and rollback
+
+1. Notify the client and freeze writes on Render.
+2. Run the final consistent export, transfer it, import on Lightsail, and compare row counts/spot checks.
+3. Test admin login, catalog, molecule pages, contact forms, image delivery, and `/api/health` on the temporary domain.
+4. Run a backup and scratch restore test.
+5. Update production A records to the Lightsail static IP; monitor health, PM2 logs, and inquiries.
+6. If needed, restore DNS to Render and unfreeze writes there. Keep Render available for about a week, then cancel it after checking its billing date.
+
+The one-command release rollback is `bash /srv/ssgpharma/current/deploy/rollback.sh`. Database rollback is separate: use `deploy/restore.sh` only after selecting and verifying a backup.
+
+## Runtime operations
+
+- `pm2 status` and `pm2 logs ssgpharma`
+- `curl -fsS http://127.0.0.1:3000/api/health`
+- `bash deploy/rollback.sh`
+- `bash deploy/reset-admin-password.sh` (run from an initialized release)
+- S3 image storage is optional, disabled by default, and requires a CDN URL.

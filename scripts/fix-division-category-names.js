@@ -11,6 +11,7 @@
 // Safe to re-run: it only touches categories whose current slug matches one
 // of the "-division" entries below, and skips anything already renamed.
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- standalone Node CommonJS utility
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();

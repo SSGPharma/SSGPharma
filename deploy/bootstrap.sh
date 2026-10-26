@@ -18,8 +18,9 @@ bash "$SCRIPT_DIR/setup-lightsail.sh"
 
 if [ -d "$APP_DIR/.git" ]; then
   echo "=== Existing app repository detected at ${APP_DIR}; running deploy update ==="
-  APP_DIR="$APP_DIR" APP_PORT="$APP_PORT" DOMAIN="$DOMAIN" DATABASE_URL="$DATABASE_URL" ADMIN_PASSWORD="$ADMIN_PASSWORD" ADMIN_SESSION_SECRET="$ADMIN_SESSION_SECRET" \
-    bash "$APP_DIR/deploy/deploy.sh"
+  export APP_DIR APP_PORT DOMAIN DATABASE_URL ADMIN_PASSWORD ADMIN_SESSION_SECRET
+  DEPLOY_SCRIPT="$APP_DIR/deploy/deploy.sh"
+  bash "$DEPLOY_SCRIPT"
 else
   if [ -z "$REPO_URL" ]; then
     echo "ERROR: REPO_URL is required when ${APP_DIR} is not initialized."

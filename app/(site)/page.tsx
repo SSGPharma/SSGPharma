@@ -8,10 +8,8 @@ import { StatsSection } from "@/components/marketing/stats-section";
 import { TestimonialsSection } from "@/components/marketing/testimonials";
 import { FadeIn } from "@/components/motion/fade-in";
 import { StaggerItem, StaggerList } from "@/components/motion/stagger-list";
-import { buttonVariants } from "@/components/ui/button";
 import { productDivisions } from "@/lib/divisions";
 import { getCachedHomepageProducts } from "@/lib/catalog-data";
-import { cn } from "@/lib/utils";
 
 const pillars = [
   {

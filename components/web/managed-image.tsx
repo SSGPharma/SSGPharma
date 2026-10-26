@@ -37,7 +37,9 @@ export function ManagedImage({
   ...props
 }: ManagedImageProps) {
   const fallbackImage = resolveFallbackImage(src, alt, fallbackSrc);
-  const resolvedSrc = src || fallbackImage;
+  const resolvedSrc = src?.startsWith("images/") && process.env.NEXT_PUBLIC_CDN_URL
+    ? `${process.env.NEXT_PUBLIC_CDN_URL.replace(/\/$/, "")}/${src.split("/").map(encodeURIComponent).join("/")}`
+    : src || fallbackImage;
 
   return <ManagedImageInner key={`${src || ""}:${fallbackImage}`} src={resolvedSrc} alt={alt} className={className} fill={fill} priority={priority} style={style} fallbackImage={fallbackImage} {...props} />;
 }

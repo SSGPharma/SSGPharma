@@ -47,14 +47,15 @@ pnpm build
 pnpm start
 ```
 
-`pnpm start` serves the standalone build on port `5050`. The AWS deploy scripts in `deploy/` use PM2 and run the standalone server directly on port `3000`.
+`pnpm start` serves the standalone build on `PORT` (default `3000`). The Lightsail deployment uses PM2 on port `3000` behind Caddy.
 
 ## Deploy notes
 
 - This project currently uses Prisma with SQLite. That is fine on a single server with persistent disk, but it is a poor fit for serverless platforms that do not provide a writable persistent filesystem.
-- If you want to stay on AWS, the simplest path is a single Lightsail instance with PM2 plus nginx or Caddy in front. The repo already includes scripts for that under `deploy/`.
+- For AWS, use the single-instance Lightsail setup, CI release deployment, backup and cutover steps in [`deploy/README.md`](deploy/README.md).
 - If you want the least-ops managed deployment without changing the database first, Render is now wired up in this repo with a Blueprint and runtime SQLite migration support.
 - If you want the easiest long-term managed deployment model, move the database to Postgres first, then deploy to a platform like Vercel, Render, or Railway.
 
-More AWS-specific steps are in [deploy/README.md](/Users/kanishkadas/Desktop/altamash-paid/medipro/deploy/README.md).
-Render-specific steps are in [deploy/render.md](/Users/kanishkadas/Desktop/altamash-paid/medipro/deploy/render.md).
+Lightsail setup, CI deploys, backups and the Render cutover runbook are in [deploy/README.md](deploy/README.md).
+The retained [Render deployment guide](deploy/render.md) is legacy documentation; keep it until Render is cancelled.
+The audit findings and migration risks are in [docs/lightsail-migration-audit.md](docs/lightsail-migration-audit.md).

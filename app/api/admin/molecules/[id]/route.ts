@@ -4,6 +4,7 @@ import { requireAdminApi, requireAdminMutation } from "@/lib/require-admin";
 import { mutationErrorResponse, parseJsonBody } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { updateMoleculeSchema } from "@/lib/validators/molecule";
+import { mirrorExternalImage } from "@/lib/mirror-image";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -69,11 +70,14 @@ export async function PATCH(
       );
     }
 
+    const imageUrl = validated.imageUrl && /^https?:\/\//i.test(validated.imageUrl)
+      ? await mirrorExternalImage(validated.imageUrl)
+      : validated.imageUrl ?? null;
     const molecule = await prisma.molecule.update({
       where: { id },
       data: {
         ...validated,
-        imageUrl: validated.imageUrl ?? null,
+        imageUrl,
       },
     });
 

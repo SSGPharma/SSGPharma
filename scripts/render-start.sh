@@ -2,22 +2,17 @@
 
 set -euo pipefail
 
-if [[ -z "${DATABASE_URL:-}" ]]; then
-  echo "DATABASE_URL is required"
-  exit 1
-fi
-
-if [[ "$DATABASE_URL" == file:* ]]; then
-  db_path="${DATABASE_URL#file:}"
-  db_dir="$(dirname "$db_path")"
-
-  if [[ -n "$db_dir" && "$db_dir" != "." ]]; then
-    mkdir -p "$db_dir"
+if [[ "${RENDER_RUNTIME_MIGRATIONS:-false}" == "true" ]]; then
+  : "${DATABASE_URL:?DATABASE_URL is required when runtime migrations are enabled}"
+  if [[ "$DATABASE_URL" == file:* ]]; then
+    db_path="${DATABASE_URL#file:}"
+    db_dir="$(dirname "$db_path")"
+    if [[ -n "$db_dir" && "$db_dir" != "." ]]; then mkdir -p "$db_dir"; fi
+    touch "$db_path"
   fi
-
-  touch "$db_path"
+  echo "Applying legacy Render runtime migrations."
+  pnpm exec prisma migrate deploy --schema prisma/schema.prisma
+else
+  echo "Skipping runtime migrations; deploy migrations explicitly before startup."
 fi
-
-echo "Applying Prisma migrations for $DATABASE_URL"
-pnpm exec prisma migrate deploy --schema prisma/schema.prisma
 exec node .next/standalone/server.js
