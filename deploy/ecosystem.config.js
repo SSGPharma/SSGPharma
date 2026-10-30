@@ -18,7 +18,7 @@ module.exports = {
   apps: [{
     name: "ssgpharma",
     cwd: "/srv/ssgpharma/current",
-    script: ".next/standalone/server.js",
+    script: "server.js",
     instances: 1,
     exec_mode: "fork",
     autorestart: true,

@@ -36,7 +36,7 @@ The workflow builds and lints on GitHub Actions, then uploads the standalone out
 
 Add the repository variable `NEXT_PUBLIC_SITE_URL` with the production HTTPS origin; the workflow requires it for correct canonical metadata. If S3 image storage is enabled, also define `NEXT_PUBLIC_CDN_URL` so the CI build generates the correct public image URLs and Next.js image allowlist. Keep `STORAGE_DRIVER=local` for the default local-disk behavior.
 
-Push to `main` or run the workflow manually. Migrations run before activation. A failed `/api/health` check restores the previous release. `deploy/rollback.sh` switches to the previous retained release. The last five releases are retained.
+Every push to `main` deploys automatically (one deploy at a time), and you can also run the workflow manually from the Actions tab, including from another branch. Migrations run before activation. A failed `/api/health` check restores the previous release. `deploy/rollback.sh` switches to the previous retained release. The last five releases are retained.
 
 ## 4. Export Render data and import it
 
@@ -54,7 +54,7 @@ Download `prod.db`, `runtime-files.tar.gz`, and `SHA256SUMS` to the server using
 ```bash
 cd /srv/ssgpharma/current
 bash deploy/import-to-server.sh /path/to/render-export
-DATABASE_URL=file:/opt/ssgpharma/shared/data/prod.db pnpm dlx ts-node scripts/verify-data.ts
+DATABASE_URL=file:/srv/ssgpharma/shared/data/prod.db pnpm dlx ts-node scripts/verify-data.ts
 ```
 
 Run `scripts/verify-data.ts` on the Render shell too and compare table counts and spot-check rows. The script only reads data and prints row counts plus up to five product and molecule names/slugs.
@@ -110,6 +110,7 @@ The one-command release rollback is `bash /srv/ssgpharma/current/deploy/rollback
 
 ## Runtime operations
 
+- `bash /srv/ssgpharma/current/deploy/status.sh` (release, app, health, services, backups, DB counts, memory and disk)
 - `pm2 status` and `pm2 logs ssgpharma`
 - `curl -fsS http://127.0.0.1:3000/api/health`
 - `bash deploy/rollback.sh`
