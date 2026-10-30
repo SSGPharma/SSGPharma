@@ -7,7 +7,15 @@ SWAP_FILE="/swapfile"
 
 echo "Installing system packages, Node.js LTS, pnpm, PM2 and Caddy."
 sudo apt-get update
-sudo apt-get install -y ca-certificates curl gnupg ufw sqlite3 awscli
+sudo apt-get install -y ca-certificates curl gnupg ufw sqlite3 unzip
+if ! command -v aws >/dev/null 2>&1; then
+  # The apt "awscli" package is gone on Ubuntu 24.04; use the official v2 bundle (needed by backup.sh).
+  AWSCLI_TMP="$(mktemp -d)"
+  curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "$AWSCLI_TMP/awscliv2.zip"
+  unzip -q "$AWSCLI_TMP/awscliv2.zip" -d "$AWSCLI_TMP"
+  sudo "$AWSCLI_TMP/aws/install"
+  rm -rf "$AWSCLI_TMP"
+fi
 if ! id "$APP_USER" >/dev/null 2>&1; then sudo useradd --system --create-home --home-dir "/home/$APP_USER" --shell /bin/bash "$APP_USER"; fi
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs
@@ -19,7 +27,7 @@ sudo -u "$APP_USER" pm2 set pm2-logrotate:max_size 10M
 sudo -u "$APP_USER" pm2 set pm2-logrotate:retain 14
 if ! command -v caddy >/dev/null 2>&1; then
   sudo install -d -m 0755 /etc/apt/keyrings
-  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor --yes -o /etc/apt/keyrings/caddy-stable-archive-keyring.gpg
+  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list >/dev/null
   sudo apt-get update && sudo apt-get install -y caddy
 fi
