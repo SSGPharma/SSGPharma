@@ -23,7 +23,7 @@ mv -Tf "$APP_ROOT/current.new" "$APP_ROOT/current"
 echo "Reloading PM2 and checking health."
 pm2 startOrReload "$RELEASE/deploy/ecosystem.config.js" --update-env
 pm2 save
-if ! curl --fail --silent --show-error --retry 10 --retry-delay 2 http://127.0.0.1:3000/api/health >/dev/null; then
+if ! curl --fail --silent --show-error --retry 20 --retry-delay 2 --retry-connrefused http://127.0.0.1:3000/api/health >/dev/null; then
   echo "Health check failed; restoring previous release." >&2
   if [ -n "$PREVIOUS" ]; then ln -sfn "$PREVIOUS" "$APP_ROOT/current.new"; mv -Tf "$APP_ROOT/current.new" "$APP_ROOT/current"; pm2 startOrReload "$PREVIOUS/deploy/ecosystem.config.js" --update-env; pm2 save; fi
   exit 1
