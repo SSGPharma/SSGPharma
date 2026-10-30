@@ -34,6 +34,7 @@ fi
 
 echo "Creating shared and release directories."
 sudo install -d -o "$APP_USER" -g "$APP_USER" "$APP_ROOT/releases" "$APP_ROOT/shared/data" "$APP_ROOT/shared/uploads" "$APP_ROOT/shared/backups"
+sudo chown "$APP_USER:$APP_USER" "$APP_ROOT" "$APP_ROOT/shared" # deploys create $APP_ROOT/current as this user
 sudo install -d -o "$APP_USER" -g "$APP_USER" /var/log/ssgpharma
 if [ ! -e "$APP_ROOT/shared/.env" ]; then sudo install -o "$APP_USER" -g "$APP_USER" -m 0600 /dev/null "$APP_ROOT/shared/.env"; fi
 sudo chown "$APP_USER:$APP_USER" "$APP_ROOT/shared/.env"
