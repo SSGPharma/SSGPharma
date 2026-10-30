@@ -1,10 +1,16 @@
 name: Build and deploy to Lightsail
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: deploy-lightsail
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
